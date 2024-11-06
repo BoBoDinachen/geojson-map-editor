@@ -1,0 +1,23 @@
+body {
+  height: 100vh;
+  width: 100vw;
+}
+
+
+html.light {
+  --nl-bg-color: #fff;
+  --nl-border-color: #efeff5;
+  --nl-hover-color: #eeeeee;
+  --nl-success-color: #18a058;
+}
+html.dark {
+  --nl-bg-color: #18181c;
+  --nl-border-color: #3f3f44;
+  --nl-hover-color: #424242;
+  --nl-success-color: #63e2b7;
+}
+
+#app {
+  height: 100%;
+  width: 100%;
+}
