@@ -24,9 +24,6 @@ defineOptions({
         <NSpace align="end">
           <NButton secondary strong :render-icon="()=>h(Undo)"></NButton>
           <NButton secondary strong :render-icon="()=>h(Redo)"></NButton>
-          <span style="opacity: 0.4;font-size: 12px;"
-            >Ctrl + Z / Ctrl + Shift + Z</span
-          >
         </NSpace>
       </div>
       <div class="right">

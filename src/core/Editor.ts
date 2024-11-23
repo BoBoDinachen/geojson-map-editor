@@ -1,26 +1,29 @@
 import { ref, Ref } from "vue";
 import { MapRnderer } from "./MapRenderer";
-import { DrawingManager } from "./DrawingManager";
+import { DrawingManager } from "./manager/DrawManager";
 import * as THREE from "three";
-import { RaycasterManager } from "./RaycasterManager";
+import { LayerManager } from "./manager/LayerManager";
+import { BackgroundLayer } from "./layers/BackgroundLayer";
+import { LayerGroup } from "./enum/Layer";
+import { backgroundLayer } from "@/stores/LayersStore";
 
 class Editor {
   private _map: MapRnderer | null; // 编辑器地图实例
   private _loading: Ref<boolean>; // 编辑器加载状态
   private _drawManager: DrawingManager | null; // 编辑器绘制管理器
+  private _layerManager: LayerManager | null;
 
   public camera!: THREE.Camera;
   public scene: THREE.Scene;
   public world: THREE.Group;
   public renderer: THREE.WebGLRenderer | null = null;
-  public raycasterManager: RaycasterManager | null = null;
 
   constructor() {
     this._loading = ref(false);
     this._map = new MapRnderer({});
     this._drawManager = DrawingManager.getInstance<DrawingManager>();
-    this.raycasterManager = RaycasterManager.getInstance<RaycasterManager>();
-    
+    this._layerManager = LayerManager.getInstance<LayerManager>();
+
     this.scene = new THREE.Scene();
     this.world = new THREE.Group();
     this.world.name = "world";
@@ -32,14 +35,20 @@ class Editor {
     const mapInstance = await this._map?.mount("map-container")!;
 
     await this._drawManager?.init(mapInstance);
+    this._layerManager?.init(mapInstance);
 
-    this.raycasterManager?.init(mapInstance,this.renderer!, this.camera, this.world);
-    
+    this._initCustomLayers();
+
     this._loading.value = false;
   }
 
   public destory() {
     this._map?.destory();
+  }
+
+  private _initCustomLayers() {
+    backgroundLayer.value = new BackgroundLayer(LayerGroup.Background);
+    this._layerManager?.addLayer(backgroundLayer.value);
   }
 
   public setMapGeocoder(container: string) {

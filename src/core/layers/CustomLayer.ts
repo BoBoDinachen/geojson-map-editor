@@ -1,4 +1,4 @@
-import mapboxgl, { LngLat, LngLatLike, MercatorCoordinate } from "mapbox-gl";
+import mapboxgl, { LngLat, LngLatLike } from "mapbox-gl";
 import * as THREE from "three";
 import editor from "@/core/Editor";
 import { MapOrigin } from "@/core/MapRenderer";

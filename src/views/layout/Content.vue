@@ -1,16 +1,24 @@
 <script lang="ts" setup>
 import SideBar from "@/views/sidebar/index.vue";
-import DrawPanel from "@/views/draw-panel/index.vue";
-import StatusBar from "@/views/statusbar/index.vue";
+import Editor from "@/views/Editor/index.vue";
+import PropertyBar from "@/views/PropertyBar/index.vue";
 defineOptions({
-  name: 'Content'
-})
+  name: "Content",
+});
 </script>
 <template>
-  <div :class="styles.container">
+  <div :class="styles.container" id="main-container">
     <SideBar></SideBar>
-    <DrawPanel></DrawPanel>
-    <StatusBar></StatusBar>
+    <n-split
+      direction="horizontal"
+      style="height: 100%"
+      :default-size="0.75"
+      :max="0.75"
+      :min="0.25"
+    >
+      <template #1> <Editor></Editor> </template>
+      <template #2> <PropertyBar></PropertyBar> </template>
+    </n-split>
   </div>
 </template>
 <style module="styles">

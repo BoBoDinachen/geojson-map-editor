@@ -90,5 +90,4 @@ function Eventbus() {
   };
   return eventbus;
 }
-// 被调用时创建闭包，内部变量eventbus始终保存在内存里，不会被销毁，调用内部函数时，影响内部变量
 export const eventbus = Eventbus();

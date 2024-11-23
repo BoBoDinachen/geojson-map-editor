@@ -1,11 +1,9 @@
 import mapboxgl, { LngLatLike, MapOptions } from "mapbox-gl";
 import { Utils } from "@/utils/index";
-import MapboxLanguage from "@mapbox/mapbox-gl-language";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
-import { TestLayer } from "./layers/TestLayer";
-import { ThreeLayer } from "./layers/ThreeLayer";
 import * as THREE from "three";
 import editor from "./Editor";
+import MapboxLanguage from "@mapbox/mapbox-gl-language";
 
 interface ControlItem {
   control: any;
@@ -17,16 +15,10 @@ export const MapOrigin = [148.9819, -35.39847] as LngLatLike;
 export class MapRnderer {
   private _options = {
     maxZoom: 30,
-    // style: {
-    //   version: 8,
-    //   sources: {},
-    //   layers: [],
-    // },
-    style: "mapbox://styles/mapbox/streets-v11",
+    style: "mapbox://styles/mapbox/dark-v11",
     container: "",
     center: MapOrigin,
-    zoom: 21,
-    pitch: 65,
+    zoom:15,
     accessToken:
       "pk.eyJ1Ijoia2FuZ2JvNDkyNiIsImEiOiJjbHA5OGd1ZWEyOXA3MmtzMTZjeXlsYzkzIn0._hOucYQXZaXSzkcSO63SOA",
   } as MapOptions;
@@ -40,12 +32,12 @@ export class MapRnderer {
       control: new mapboxgl.ScaleControl(),
       position: "bottom-left",
     },
-    // {
-    //   control: new MapboxLanguage({
-    //     defaultLanguage: "zh-Hans",
-    //   }),
-    //   position: "top-right",
-    // },
+    {
+      control: new MapboxLanguage({
+        defaultLanguage: "zh-Hans",
+      }),
+      position: "top-right",
+    },
   ];
 
   private _map: mapboxgl.Map | null = null;
@@ -69,12 +61,11 @@ export class MapRnderer {
 
     this._addResizeListener(containerId);
     await this._map.once("load");
+
     this.initThreeRenderer(this._map);
-    // this.changeLanguage();
-    // this._setupGeocoder();
-    this._initCustomLayer();
-    await this._map.once("idle");
-    return this._map
+    this._setupGeocoder();
+
+    return this._map;
   }
 
   public destory() {
@@ -100,8 +91,13 @@ export class MapRnderer {
     const canvas = map.getCanvas();
 
     const h = canvas.clientHeight;
-		const w = canvas.clientWidth;
-    editor.camera = new THREE.PerspectiveCamera(map.transform.fov, w / h, 0.1, 1e21)
+    const w = canvas.clientWidth;
+    editor.camera = new THREE.PerspectiveCamera(
+      map.transform.fov,
+      w / h,
+      0.1,
+      1e21
+    );
 
     // use the Mapbox GL JS map canvas for three.js
     editor.renderer = new THREE.WebGLRenderer({
@@ -116,14 +112,6 @@ export class MapRnderer {
     );
     editor.renderer.autoClear = false;
   }
-
-  private _initCustomLayer() {
-    // const testLayer = new TestLayer();
-    const threeLayer = new ThreeLayer();
-    // this._map?.addLayer(testLayer);
-    this._map?.addLayer(threeLayer);
-  }
-
   private _setupGeocoder() {
     const geocoder = new MapboxGeocoder({
       accessToken: this._options.accessToken!,
