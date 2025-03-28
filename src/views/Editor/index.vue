@@ -3,39 +3,47 @@ import Toolbar from "@/views/toolbar/index.vue";
 import editor from "@/core/Editor";
 import { onMounted, onUnmounted } from "vue";
 defineOptions({
-  name: 'DrawPanel'
-})
-onMounted (() => {
-  editor.init()
-})
+  name: "DrawPanel",
+});
+onMounted(() => {
+  editor.init({ geocoderContainer: "map-search" });
+});
 onUnmounted(() => {
-  editor.destory()
-})
+  editor.destory();
+});
 </script>
 <template>
   <div class="draw-panel">
     <n-spin
-      style="flex:1;width:100%;height:100%;"
+      style="flex: 1; width: 100%; height: 100%"
       :show="editor.loading"
       content-style="width:100%;height:100%;"
     >
+      <div id="map-search"></div>
       <div id="map-container"></div>
     </n-spin>
-    <Toolbar v-if="!editor.loading"></Toolbar>
+    <!-- <Toolbar v-if="!editor.loading"></Toolbar> -->
   </div>
 </template>
 <style scoped>
-.draw-panel{
-    position: relative;
-    flex: 1;
-    height: 100%;
-    background-color: #282c34;
-    display: flex;
-    flex-direction: column;
-    align-items: center
+.draw-panel {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  background-color: #282c34;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-#map-container{
-    width: 100%;
-    height: 100%;
+#map-container {
+  width: 100%;
+  height: 100%;
+}
+#map-search {
+  position: absolute;
+  width: 120px;
+  height: 50px;
+  top: 10px;
+  left: 10px;
 }
 </style>

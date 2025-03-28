@@ -10,7 +10,8 @@ import {
 import { backgroundLayer } from "@/stores/LayersStore";
 import { eventbus } from "@/utils/eventbus";
 import { EventTypeEnum } from "@/core/enum/Event";
-import { LayerName } from "@/core/enum/Layer";
+import { LayerType } from "@/core/enum/Layer";
+import { SideMenusStore } from "@/stores/SideMenusStore";
 
 defineOptions({
   name: "Sidebar",
@@ -20,55 +21,50 @@ type LayerItem = {
   name: string;
   icon: Component;
   locked: boolean;
-  visibility: Ref<boolean>;
+  visibility: boolean;
   instance?: ShallowRef<MapLayer | undefined>;
   toggleVisible: () => void;
 };
-const layers: Array<LayerItem> = [
-  {
-    key: "icon",
-    name: "Icons",
-    icon: Layers,
-    locked: false,
-    visibility: computed(() => false),
-    toggleVisible() {},
-  },
-  {
-    key: LayerName.Label,
-    name: "Label",
-    icon: Layers,
-    locked: false,
-    visibility: computed(() => false),
-    toggleVisible() {},
-  },
-  {
-    key: LayerName.Fill,
-    name: "Fill",
-    icon: Layers,
-    locked: false,
-    visibility: computed(() => false),
-    toggleVisible() {},
-  },
-  {
-    key: LayerName.Ground,
-    name: "Ground",
-    icon: Layers,
-    locked: true,
-    visibility: computed(() => false),
-    toggleVisible() {},
-  },
-  {
-    key: LayerName.Background,
-    name: "Background",
-    icon: Layers,
-    locked: true,
-    instance: backgroundLayer,
-    visibility: computed(() => backgroundLayer.value?.visible ?? false),
-    toggleVisible() {
-      backgroundLayer.value?.toggleVisible();
+
+const getLayers = (): Array<LayerItem> => {
+  return [
+    {
+      key: LayerType.Label,
+      name: "Labels",
+      icon: Layers,
+      locked: false,
+      visibility: false,
+      toggleVisible() {},
     },
-  },
-];
+    {
+      key: LayerType.Wall,
+      name: "Walls",
+      icon: Layers,
+      locked: false,
+      visibility: false,
+      toggleVisible() {},
+    },
+    {
+      key: LayerType.Ground,
+      name: "Ground",
+      icon: Layers,
+      locked: true,
+      visibility: false,
+      toggleVisible() {},
+    },
+    {
+      key: LayerType.Background,
+      name: "Background",
+      icon: Layers,
+      locked: true,
+      instance: backgroundLayer,
+      visibility: backgroundLayer.value?.visible || false,
+      toggleVisible() {
+        backgroundLayer.value?.toggleVisible();
+      },
+    },
+  ];
+};
 
 onMounted(() => {
   // console.log(backgroundLayer.value, editor);
@@ -80,9 +76,15 @@ onMounted(() => {
       <NCollapseItem title="Layers" name="1">
         <NSpace vertical justify="start">
           <div
-            :class="styles['layer-item']"
-            v-for="layer in layers"
+            v-for="layer in getLayers()"
             :key="layer.key"
+            :class="[styles['layer-item']]"
+            :style="{
+              backgroundColor:
+                SideMenusStore.activeLayerType == layer.key
+                  ? 'var(--nl-hover-color)'
+                  : '',
+            }"
           >
             <NSpace
               align="center"
@@ -90,6 +92,7 @@ onMounted(() => {
               @click="
                 () => {
                   eventbus.emit(EventTypeEnum.SELECT_LAYER, layer.key);
+                  SideMenusStore.activeLayerType = layer.key;
                 }
               "
             >
@@ -101,7 +104,7 @@ onMounted(() => {
                 text
                 style="font-size: 24px"
                 :render-icon="
-                  () => h(layer.visibility?.value ? ViewFilled : ViewOffFilled)
+                  () => h(layer.visibility ? ViewFilled : ViewOffFilled)
                 "
                 @click="layer.toggleVisible()"
               >
@@ -142,5 +145,8 @@ onMounted(() => {
   padding: 5px;
   box-sizing: border-box;
   border: 1px solid var(--nl-border-color);
+}
+.layer-active {
+  background-color: var(--nl-hover-color);
 }
 </style>

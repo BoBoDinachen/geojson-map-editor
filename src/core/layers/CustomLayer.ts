@@ -5,10 +5,14 @@ import { MapOrigin } from "@/core/MapRenderer";
 
 export class CustomLayer {
   public id: string;
-  public type: "custom";
-  public renderingMode: "3d"; // '3d' | '2d'
+  public type: string;
+  public renderingMode: string; // '3d' | '2d'
   protected _map: mapboxgl.Map | null = null;
-  constructor(parameters) {
+  constructor(parameters: {
+    id: string;
+    type?: string;
+    renderingMode?: string;
+  }) {
     this.id = parameters.id;
     this.type = parameters.type || "custom"; // 'custom'
     this.renderingMode = parameters.renderingMode || "3d"; // '3d' | '2d'

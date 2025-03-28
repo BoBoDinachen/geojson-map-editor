@@ -12,7 +12,7 @@ defineOptions({
     <n-split
       direction="horizontal"
       style="height: 100%"
-      :default-size="0.75"
+      :default-size="0.65"
       :max="0.75"
       :min="0.25"
     >

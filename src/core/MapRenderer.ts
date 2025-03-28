@@ -1,16 +1,24 @@
-import mapboxgl, { LngLatLike, MapOptions } from "mapbox-gl";
+import mapboxgl, { LngLatBoundsLike, LngLatLike, MapOptions } from "mapbox-gl";
 import { Utils } from "@/utils/index";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as THREE from "three";
 import editor from "./Editor";
 import MapboxLanguage from "@mapbox/mapbox-gl-language";
+import {
+  ControlKeyEnum,
+  CoordDisplayControl,
+  ViewModeControl,
+} from "./controls/index";
+import { StorageHandler } from "@/storage-handler";
+import * as turf from "@turf/turf";
 
 interface ControlItem {
+  key: string;
   control: any;
   position: mapboxgl.ControlPosition;
 }
 
-export const MapOrigin = [148.9819, -35.39847] as LngLatLike;
+export const MapOrigin = [115.64853372179806, 23.224468596148014] as LngLatLike;
 
 export class MapRnderer {
   private _options = {
@@ -18,24 +26,38 @@ export class MapRnderer {
     style: "mapbox://styles/mapbox/dark-v11",
     container: "",
     center: MapOrigin,
-    zoom:15,
+    zoom: 18,
+    antialias: true,
     accessToken:
       "pk.eyJ1Ijoia2FuZ2JvNDkyNiIsImEiOiJjbHA5OGd1ZWEyOXA3MmtzMTZjeXlsYzkzIn0._hOucYQXZaXSzkcSO63SOA",
   } as MapOptions;
 
   private _controls: Array<ControlItem> = [
     {
+      key: "nav",
       control: new mapboxgl.NavigationControl(),
       position: "bottom-right",
     },
     {
+      key: "scale",
       control: new mapboxgl.ScaleControl(),
       position: "bottom-left",
     },
     {
+      key: "language",
       control: new MapboxLanguage({
         defaultLanguage: "zh-Hans",
       }),
+      position: "top-right",
+    },
+    {
+      key: ControlKeyEnum.COORD_CONTROL,
+      control: new CoordDisplayControl(),
+      position: "bottom-left",
+    },
+    {
+      key: ControlKeyEnum.VIEW_MODE_CONTROL,
+      control: new ViewModeControl(),
       position: "top-right",
     },
   ];
@@ -63,6 +85,7 @@ export class MapRnderer {
     await this._map.once("load");
 
     this.initThreeRenderer(this._map);
+    this._initMapBounds();
     this._setupGeocoder();
 
     return this._map;
@@ -70,6 +93,24 @@ export class MapRnderer {
 
   public destory() {
     this._map?.remove();
+  }
+
+  private _initMapBounds() {
+    const features = StorageHandler.getAllFatures();
+    if (features.length === 0) {
+      this._map?.setZoom(2);
+      return;
+    }
+    const geosjon = {
+      type: "FeatureCollection",
+      features: features,
+    };
+    //@ts-ignore
+    const bounds = turf.bbox(geosjon) as LngLatBoundsLike;
+    this._map?.fitBounds(bounds, {
+      padding: 50,
+      duration: 1000,
+    });
   }
 
   public changeLanguage(language: "cn" | "es" = "cn") {
@@ -112,6 +153,7 @@ export class MapRnderer {
     );
     editor.renderer.autoClear = false;
   }
+
   private _setupGeocoder() {
     const geocoder = new MapboxGeocoder({
       accessToken: this._options.accessToken!,
@@ -127,6 +169,7 @@ export class MapRnderer {
     this._geocoder = el;
     return el;
   }
+
   private _coordinatesGeocoder = function (query: string) {
     // Match anything which looks like
     // decimal degrees coordinate pair.

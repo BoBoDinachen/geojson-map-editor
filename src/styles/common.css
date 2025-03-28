@@ -1,0 +1,9 @@
+.text-shadow {
+  text-shadow: -1px -1px 0 var(--n-bg-color),
+    /* 左上 */ 1px -1px 0 var(--n-bg-color),
+    /* 右上 */ -1px 1px 0 var(--n-bg-color),
+    /* 左下 */ 1px 1px 0 var(--n-bg-color); /* 右下 */
+}
+.font-size-large {
+  font-size: 20px;
+}

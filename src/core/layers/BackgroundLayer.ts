@@ -1,17 +1,15 @@
 import * as mapbox from "mapbox-gl";
 import { reactive } from "vue";
-export class BackgroundLayer implements MapLayer {
-  public groupId: number;
-  private _map: mapbox.Map | null = null;
+import { LayerGroup } from "../enum/Layer";
+import { CustomLayer } from "./CustomLayer";
+export class BackgroundLayer extends CustomLayer {
+  public groupId: number = LayerGroup.Background;
   public properties = reactive({
     visible: true,
     baseMapUrl: "mapbox://styles/mapbox/dark-v11",
     token:
       "pk.eyJ1Ijoia2FuZ2JvNDkyNiIsImEiOiJjbHA5OGd1ZWEyOXA3MmtzMTZjeXlsYzkzIn0._hOucYQXZaXSzkcSO63SOA",
   });
-  constructor(groupId: number) {
-    this.groupId = groupId;
-  }
   public onAdd(map: mapbox.Map) {
     this._map = map;
   }

@@ -1,0 +1,8 @@
+.snap-point-marker {
+  background-color: #0061ff;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid white;
+  
+}

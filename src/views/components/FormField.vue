@@ -97,7 +97,7 @@ watch(
       <n-input
         :disabled
         v-model:value="localValue"
-        style="min-width: 150px;max-width: 180px;"
+        style="min-width: 150px;max-width: 100%;"
         size="small"
         @input="updateValue"
         autosize

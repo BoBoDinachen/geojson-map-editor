@@ -8,14 +8,10 @@ defineOptions({
   name: "PropertyBar",
 });
 onMounted(() => {
-  eventbus.addListener(EventTypeEnum.SELECT_LAYER, (layerName: string) => {
-    console.log(`select layer: ${layerName}`);
-    SideMenusStore.toggleMenu(MenuKeyEnum.Layer);
-    SideMenusStore.state.activeLayerName = layerName;
-  });
+  SideMenusStore.initListener();
 });
 onUnmounted(() => {
-  eventbus.removeAllListener(EventTypeEnum.SELECT_LAYER);
+  SideMenusStore.removeListener();
 });
 </script>
 <template>
@@ -24,7 +20,7 @@ onUnmounted(() => {
     :bordered="false"
     style="padding: 0"
     header-style="padding: 0"
-    content-style="padding: 0"
+    content-style="padding: 0;overflow: hidden;"
   >
     <template #header>
       <div class="header">
@@ -32,25 +28,28 @@ onUnmounted(() => {
       </div>
     </template>
     <div class="main">
-      <NScrollbar content-class="content-wrapper" style="height: 100%">
+      <div style="width: 100%; overflow: hidden">
         <NSpin
           size="small"
           :show="editor.loading"
           description="Loading..."
-          style="height: 100%"
+          style="height: 100%; overflow: hidden"
+          content-style="overflow: hidden;height: 100%;"
         >
-          <component
-            v-bind="SideMenusStore.activeMenu?.props"
-            :is="SideMenusStore.activeMenu?.component"
-          />
+          <NScrollbar style="height: 100%">
+            <component
+              v-bind="SideMenusStore.activeMenu?.props"
+              :is="SideMenusStore.activeMenu?.component"
+            />
+          </NScrollbar>
         </NSpin>
-      </NScrollbar>
+      </div>
       <div class="menus-wrapper">
         <div
           v-for="menuItem in SideMenusStore.menus"
           :class="[
             'menu-item',
-            SideMenusStore.state.activeMenuKey === menuItem.key ? 'active' : '',
+            SideMenusStore.activeMenuKey === menuItem.key ? 'active' : '',
           ]"
           @click="
             () => {
@@ -64,7 +63,7 @@ onUnmounted(() => {
             text
             style="font-size: 24px"
             :type="
-              SideMenusStore.state.activeMenuKey === menuItem.key
+              SideMenusStore.activeMenuKey === menuItem.key
                 ? 'primary'
                 : undefined
             "
@@ -91,11 +90,6 @@ onUnmounted(() => {
     height: 100%;
     display: flex;
     overflow: hidden;
-  }
-  .content-wrapper {
-    flex: 1;
-    height: 100%;
-    overflow: auto;
   }
   .menus-wrapper {
     width: 50px;

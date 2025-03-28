@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { SideMenusStore } from "@/stores/SideMenusStore";
-import { LayerName } from "@/core/enum/Layer";
+import { LayerType } from "@/core/enum/Layer";
 import BackgroundLayer from "../Layers/Background.vue";
 import GroundLayer from "../Layers/Ground.vue";
+import WallsLayer from "../Layers/Walls.vue";
 
 defineOptions({
   name: "LayerPane",
@@ -11,15 +12,20 @@ defineOptions({
 <template>
   <div class="layer-container">
     <BackgroundLayer
-      v-if="SideMenusStore.state.activeLayerName === LayerName.Background"
+      v-if="SideMenusStore.activeLayerType === LayerType.Background"
     />
     <GroundLayer
-      v-if="SideMenusStore.state.activeLayerName === LayerName.Ground"
+      v-if="SideMenusStore.activeLayerType === LayerType.Ground"
     ></GroundLayer>
+    <WallsLayer
+      v-if="SideMenusStore.activeLayerType === LayerType.Wall"
+    ></WallsLayer>
   </div>
 </template>
 <style lang="scss">
 .layer-container {
   padding: 10px;
+  height: 100%;
+  overflow: hidden;
 }
 </style>
