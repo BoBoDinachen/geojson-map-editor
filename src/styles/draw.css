@@ -4,5 +4,11 @@
   height: 15px;
   border-radius: 50%;
   border: 2px solid white;
-  
+}
+
+.draw-tip-text{
+  background-color: rgba(16, 16, 20, 0.5);
+  padding: 5px;
+  font-size: 16px;
+  color: white;
 }

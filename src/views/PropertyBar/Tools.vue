@@ -33,11 +33,40 @@ const CoordinatePickupHook = {
     );
   },
   cancel() {
-    CoordinatePickupHook.stopDraw();
+    const self = CoordinatePickupHook;
+    self.state.drawing = false;
+    self.stopDraw && self.stopDraw();
+  },
+};
+
+const MeasureDistanceManager = {
+  state: reactive({
+    isDrawing: false,
+  }),
+  stopDraw: null as any,
+  start() {
+    const self = MeasureDistanceManager;
+    const drawInstance = editor.getDrawManager();
+    self.state.isDrawing = true;
+    self.stopDraw = drawInstance?.drawMeasureLine(
+      (feature) => {},
+      () => {
+        self.state.isDrawing = false;
+      },
+      {}
+    );
+  },
+  cancel() {
+    const self = MeasureDistanceManager;
+    self.state.isDrawing = false;
+    self.stopDraw && self.stopDraw();
   },
 };
 onMounted(() => {});
-onUnmounted(() => {});
+onUnmounted(() => {
+  CoordinatePickupHook.cancel();
+  MeasureDistanceManager.cancel();
+});
 </script>
 <template>
   <div class="tools-panel">
@@ -60,11 +89,31 @@ onUnmounted(() => {});
         </NSpace>
       </NSpace>
     </NCard>
+    <NCard size="small">
+      <NSpace>
+        <NButton
+          size="small"
+          type="primary"
+          :disabled="MeasureDistanceManager.state.isDrawing"
+          @click="MeasureDistanceManager.start"
+          >Measure Distance</NButton
+        >
+        <NButton
+          size="small"
+          v-if="MeasureDistanceManager.state.isDrawing"
+          @click="MeasureDistanceManager.cancel"
+          >Cancel</NButton
+        >
+      </NSpace>
+    </NCard>
   </div>
 </template>
 <style lang="scss">
 .tools-panel {
   height: 100%;
   padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 </style>

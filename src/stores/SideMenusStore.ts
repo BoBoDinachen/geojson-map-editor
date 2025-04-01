@@ -1,11 +1,13 @@
 import { markRaw, reactive } from "vue";
 import { Layers, Cube, ToolKit } from "@vicons/carbon";
-import LayerPanel from "@/views/PropertyBar/TabPane/Layer.vue";
-import FeaturePanel from "@/views/PropertyBar/TabPane/Feature.vue";
-import { LayerType } from "@/core/enum/Layer";
-import ToolsPanel from "@/views/PropertyBar/TabPane/Tools.vue";
+import LayerPanel from "@/views/PropertyBar/Layer.vue";
+import FeaturePanel from "@/views/PropertyBar/Feature.vue";
+import { FeatureType } from "@/core/enum/Layer";
+import ToolsPanel from "@/views/PropertyBar/Tools.vue";
 import { eventbus } from "@/utils/eventbus";
 import { EventTypeEnum } from "@/core/enum/Event";
+import { Utils } from "@/utils";
+import { Feature } from "geojson";
 
 export enum MenuKeyEnum {
   Layer = "layer",
@@ -17,7 +19,7 @@ export const SideMenusStore = reactive({
   menus: [
     {
       key: MenuKeyEnum.Layer,
-      title: "Layer",
+      title: "Background Layer",
       icon: markRaw(Layers),
       component: markRaw(LayerPanel),
       props: {},
@@ -38,9 +40,16 @@ export const SideMenusStore = reactive({
     },
   ],
   activeMenuKey: MenuKeyEnum.Layer,
-  activeLayerType: LayerType.Background,
-  toggleMenu(menuKey: MenuKeyEnum) {
+  activeLayerType: FeatureType.Background,
+  toggleMenu(menuKey: MenuKeyEnum, title?: string, props?: any) {
     this.activeMenuKey = menuKey;
+    const menu = this.menus.find((menu) => menu.key === menuKey)!;
+    if (title) {
+      menu.title = Utils.capitalizeFirstLetter(title);
+    }
+    if (props) {
+      menu.props = props;
+    }
   },
   get activeMenu() {
     return this.menus.find((menu) => menu.key === this.activeMenuKey);
@@ -48,11 +57,20 @@ export const SideMenusStore = reactive({
   initListener() {
     eventbus.addListener(EventTypeEnum.SELECT_LAYER, (LayerType: string) => {
       console.log(`select layer: ${LayerType}`);
-      this.toggleMenu(MenuKeyEnum.Layer);
+      this.toggleMenu(MenuKeyEnum.Layer, `${LayerType} Layer`);
       this.activeLayerType = LayerType;
     });
+    eventbus.addListener(
+      EventTypeEnum.SELECT_FEATURE,
+      (props: { feature: Feature }) => {
+        this.toggleMenu(MenuKeyEnum.Feature, "Feature", {
+          feature: props.feature,
+        });
+      }
+    );
   },
   removeListener() {
     eventbus.removeAllListener(EventTypeEnum.SELECT_LAYER);
+    eventbus.removeAllListener(EventTypeEnum.SELECT_FEATURE);
   },
 });

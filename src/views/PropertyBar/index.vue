@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import editor from "@/core/Editor";
-import { EventTypeEnum } from "@/core/enum/Event";
 import { MenuKeyEnum, SideMenusStore } from "@/stores/SideMenusStore";
-import { eventbus } from "@/utils/eventbus";
 import { onMounted, onUnmounted } from "vue";
 defineOptions({
   name: "PropertyBar",

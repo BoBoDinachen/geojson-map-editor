@@ -1,10 +1,14 @@
-import { BackgroundLayer } from "@/core/layers/BackgroundLayer";
-import { GroundLayer } from "@/core/layers/Ground";
-import { WallsLayer } from "@/core/layers/Walls";
+import {
+  WallsLayer,
+  GroundLayer,
+  BackgroundLayer,
+  BlockLayer,
+} from "@/core/layers/index";
 import { shallowRef } from "vue";
 
-const backgroundLayer = shallowRef<BackgroundLayer>();
-const groundLayer = shallowRef<GroundLayer>();
-const wallsLayer = shallowRef<WallsLayer>();
+const backgroundLayer = shallowRef<BackgroundLayer | null>(null);
+const groundLayer = shallowRef<GroundLayer | null>(null);
+const wallsLayer = shallowRef<WallsLayer | null>(null);
+const blockLayer = shallowRef<BlockLayer | null>(null);
 
-export { backgroundLayer, groundLayer, wallsLayer };
+export { backgroundLayer, groundLayer, wallsLayer, blockLayer };

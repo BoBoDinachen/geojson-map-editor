@@ -6,7 +6,7 @@ import SettingsModal from "../settings/index.vue";
 import ExportModal from "./ExportModal.vue";
 import * as turf from "@turf/turf";
 import { UploadFileInfo, UploadInst } from "naive-ui";
-import { wallsLayer, groundLayer } from "@/stores/LayersStore";
+import { wallsLayer, groundLayer,blockLayer } from "@/stores/LayersStore";
 import editor from "@/core/Editor";
 import { LngLatBoundsLike } from "mapbox-gl";
 
@@ -23,7 +23,8 @@ const handleImport = (uploadFile: UploadFileInfo) => {
       const newLngLatBounds = turf.bbox(geojsonData) as LngLatBoundsLike;
       wallsLayer.value?.setFeatures(geojsonData.features);
       groundLayer.value?.setFeatures(geojsonData.features);
-      editor.map?.mapInstance?.fitBounds(newLngLatBounds, {
+      blockLayer.value?.setFeatures(geojsonData.features);
+      editor.mapInstance?.fitBounds(newLngLatBounds, {
         padding: 50,
         duration: 1000,
       });
@@ -42,16 +43,16 @@ defineOptions({
 </script>
 <template>
   <div class="container">
-    <div class="logo">Map Editor</div>
+    <div class="logo">GeoJson Editor</div>
     <div class="operate-items">
       <div class="left">
-        <NDivider vertical></NDivider>
+        <!-- <NDivider vertical></NDivider>
         <NSpace :size="12">
           <NButton :disabled="true" :render-icon="() => h(Save)">
             Save
           </NButton>
           <NButton :render-icon="() => h(ViewFilled)"> Preview </NButton>
-        </NSpace>
+        </NSpace> -->
         <NDivider vertical></NDivider>
         <NSpace align="end">
           <NButton secondary strong :render-icon="() => h(Undo)"></NButton>

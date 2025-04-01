@@ -3,6 +3,7 @@ import { CircleMode } from "./circle_mode";
 import { DrawPointMode } from "./draw_point_mode";
 import { DrawPolygonMode } from "./draw_polygon";
 import { SnapLineMode } from "./snap_line_mode";
+import { MeasureLineMode } from "./measure_line_mode";
 
 export {
   DrawRectangleMode,
@@ -10,6 +11,7 @@ export {
   DrawPointMode,
   DrawPolygonMode,
   SnapLineMode,
+  MeasureLineMode,
 };
 
 export enum DrawModeEnum {

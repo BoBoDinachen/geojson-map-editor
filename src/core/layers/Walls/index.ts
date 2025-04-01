@@ -1,21 +1,22 @@
 import { reactive, ref, Ref } from "vue";
 import * as mapbox from "mapbox-gl";
-import { LayerGroup, LayerType } from "../../enum/Layer";
+import { LayerGroup, FeatureType } from "../../enum/Layer";
 import { DrawingManager } from "../../manager/DrawManager";
 import { CustomLayer } from "../CustomLayer";
 import { Feature } from "geojson";
 import { getWallStyles } from "./styles";
-import { DrawModeEnum } from "@/core/draw_modes";
 import { StorageHandler } from "@/storage-handler";
-import { groundLayer } from "@/stores/LayersStore";
+import { groundLayer, blockLayer } from "@/stores/LayersStore";
 import { generatePolygonFromPolyline } from "@/utils/geometry";
+import { eventbus } from "@/utils/eventbus";
+import { EventTypeEnum } from "@/core/enum/Event";
 
 export class WallsLayer extends CustomLayer {
   id: string = "walls-layer";
   public groupId: number = LayerGroup.Wall;
   public visible: Ref<boolean, boolean> = ref(true);
   private _drawManager = DrawingManager.getInstance<DrawingManager>();
-
+  private _selectEnabled = false;
   private _features = ref<Array<Feature>>([]);
   private _opacity = ref(1);
   private _feaureProperties = ref<FeatureProperties>({
@@ -40,7 +41,8 @@ export class WallsLayer extends CustomLayer {
     styles.forEach((style) => {
       map.addLayer(style);
     });
-    console.log("walls layer add", map);
+    this._addLayerEventListener();
+    console.log("walls layer add");
   }
   onRemove(map: mapbox.Map) {}
   toggleVisible(): void {}
@@ -57,6 +59,7 @@ export class WallsLayer extends CustomLayer {
         options.width
       );
       const polygonFeature: Feature = {
+        id: this._features.value.length + 1,
         type: "Feature",
         geometry: {
           type: "Polygon",
@@ -65,7 +68,7 @@ export class WallsLayer extends CustomLayer {
         properties: {
           ...this._feaureProperties.value,
           index: this._features.value.length + 1,
-          type: LayerType.Wall,
+          type: FeatureType.Wall,
           //@ts-ignore
           lineString: lineFeature.geometry.coordinates,
           width: options.width,
@@ -75,12 +78,16 @@ export class WallsLayer extends CustomLayer {
       this._features.value.push(polygonFeature);
       this._updateSourceData(this._features.value);
     };
-    const snapBounds =
-      groundLayer.value?.getFeatures().map((feature) => {
-        //@ts-ignore
-        return feature.geometry.coordinates[0];
-      }) || [];
+    const snapBounds = [];
     this.getFeatures().forEach((feature) => {
+      //@ts-ignore
+      snapBounds.push(feature.geometry.coordinates[0]);
+    });
+    groundLayer.value?.getFeatures().forEach((feature) => {
+      //@ts-ignore
+      snapBounds.push(feature.geometry.coordinates[0]);
+    });
+    blockLayer.value?.getFeatures().forEach((feature) => {
       //@ts-ignore
       snapBounds.push(feature.geometry.coordinates[0]);
     });
@@ -106,6 +113,17 @@ export class WallsLayer extends CustomLayer {
     const index = this._features.value.findIndex(
       (f) => f.properties?.index === featureIndex
     );
+    if (index > -1) {
+      this._features.value.splice(index, 1);
+      this._features.value.forEach((feature, index) => {
+        feature.properties!.index = index + 1;
+      });
+      this._updateSourceData(this._features.value);
+    }
+  }
+
+  public removeFeatureById(featureId: number) {
+    const index = this._features.value.findIndex((f) => f.id === featureId);
     if (index > -1) {
       this._features.value.splice(index, 1);
       this._features.value.forEach((feature, index) => {
@@ -161,10 +179,18 @@ export class WallsLayer extends CustomLayer {
     // filter features
     const filteredFeatures = features.filter((feature) => {
       //@ts-ignore
-      return feature.properties.type === LayerType.Wall;
+      return feature.properties.type === FeatureType.Wall;
     });
     this._features.value = filteredFeatures;
     this._updateSourceData(filteredFeatures);
+  }
+
+  public disableSelect() {
+    this._selectEnabled = false;
+  }
+
+  public enableSelect() {
+    this._selectEnabled = true;
   }
 
   private _initFeatures() {
@@ -189,6 +215,115 @@ export class WallsLayer extends CustomLayer {
     source.setData({
       type: "FeatureCollection",
       features: features,
+    });
+  }
+
+  private _addLayerEventListener() {
+    eventbus.addListener(
+      EventTypeEnum.DisableLayerSelect,
+      (options?: { exclude: string[] }) => {
+        if (options && options.exclude?.includes("walls")) return;
+        this.disableSelect();
+        eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: null });
+        this.getFeatures().forEach((feature) => {
+          changeSelectedState(feature.id!, false);
+        });
+      }
+    );
+    eventbus.addListener(
+      EventTypeEnum.EnableLayerSelect,
+      (options?: { include: string[] }) => {
+        if (options && !options.include?.includes("walls")) return;
+        this.enableSelect();
+      }
+    );
+    eventbus.addListener(EventTypeEnum.ClearLayerSelectedState, () => {
+      this.getFeatures().forEach((feature) => {
+        changeSelectedState(feature.id!, false);
+      });
+    });
+
+    let hoveredFeatureId: any = null;
+
+    const isBlockFeature = (feature: any) => {
+      return feature.properties!["type"] == FeatureType.Wall;
+    };
+
+    const changeHoverState = (featureId: number | string, isHover: boolean) => {
+      this._map?.setFeatureState(
+        { source: "walls-source", id: featureId },
+        { hover: isHover }
+      );
+    };
+
+    const changeSelectedState = (
+      featureId: number | string,
+      isSelected: boolean
+    ) => {
+      this._map?.setFeatureState(
+        { source: "walls-source", id: featureId },
+        { selected: isSelected }
+      );
+    };
+
+    this._map?.on("click", [`wall-fill`], (e) => {
+      if (e.defaultPrevented) return;
+      if (!this._selectEnabled) return;
+      // 获取点击位置的特征信息
+      if (!e.features) return;
+      const feature = e.features[0];
+      eventbus.emit(EventTypeEnum.ClearLayerSelectedState);
+      if (isBlockFeature(feature)) {
+        console.log("wall feature clicked", feature);
+        eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature });
+        changeSelectedState(feature.id!, true);
+      } else {
+      }
+    });
+
+    this._map?.on("contextmenu", [`wall-fill`], (e) => {
+      if (e.defaultPrevented) return;
+      if (!this._selectEnabled) return;
+      eventbus.emit(EventTypeEnum.OpenContextMenu, {
+        pos: e.point,
+        data: {
+          type: FeatureType.Wall,
+          featureId: hoveredFeatureId,
+        },
+      });
+    });
+
+    this._map?.on("mousemove", [`wall-fill`], (e) => {
+      if (e.defaultPrevented) return;
+      if (!this._selectEnabled) return;
+      if (e.features!.length > 0) {
+        this._map!.getCanvas().style.cursor = "pointer";
+        this._map?.dragRotate.disable();
+        const feature = e.features![0];
+        if (hoveredFeatureId !== null) {
+          if (isBlockFeature(feature)) {
+            changeHoverState(hoveredFeatureId, false);
+          }
+        }
+        hoveredFeatureId = feature.id!;
+        if (isBlockFeature(feature)) {
+          changeHoverState(hoveredFeatureId, true);
+        }
+      }
+    });
+    this._map?.on("mouseenter", [`wall-fill`], (e) => {
+      if (e.defaultPrevented) return;
+      if (!this._selectEnabled) return;
+    });
+    this._map?.on("mouseleave", [`wall-fill`], (e) => {
+      if (e.defaultPrevented) return;
+      if (!this._selectEnabled) return;
+      if (hoveredFeatureId !== null) {
+        this._map!.getCanvas().style.cursor = "";
+        this._map?.dragRotate.enable();
+        changeHoverState(hoveredFeatureId, false);
+      }
+      hoveredFeatureId = null;
     });
   }
 }

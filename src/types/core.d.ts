@@ -17,4 +17,9 @@ declare namespace DrawCore {
     snapThreshold: number; //吸附线阈值，单位像素
     bounds: Array<number[][]>;
   };
+
+  export type DrawMeasureLineOptions = {
+    duration?: number;
+    deleteAll?: boolean;
+  };
 }

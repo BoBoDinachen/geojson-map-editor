@@ -1,113 +1,164 @@
 <script lang="tsx" setup>
-import { Component, h, markRaw, onMounted, reactive, ref } from 'vue';
+import { Component, h, markRaw, onMounted, reactive, ref } from "vue";
 import editor from "@/core/Editor";
-import { Area,Move,SelectWindow,AreaCustom,CircleDash,Workspace as WallIcon,Bookmark as MarkerIcon } from "@vicons/carbon";
-import { NButton, NDivider, NIcon, NSpace, NText } from 'naive-ui';
+import {
+  Area,
+  Move,
+  SelectWindow,
+  AreaCustom,
+  CircleDash,
+  Workspace as WallIcon,
+  Bookmark as MarkerIcon,
+} from "@vicons/carbon";
+import { NButton, NDivider, NIcon, NSpace, NText } from "naive-ui";
+import { blockLayer, wallsLayer } from "@/stores/LayersStore";
+import { DrawModeEnum } from "@/core/draw_modes";
+import { eventbus } from "@/utils/eventbus";
+import { EventTypeEnum } from "@/core/enum/Event";
+
 defineOptions({
-  name: 'Toolbar'
-})
-const currentAction = ref('select')
+  name: "Toolbar",
+});
+
 interface Action {
-  key: string,
-  tip: string,
-  icon: Component,
+  key: string;
+  tip: string;
+  icon: Component;
   children?: Array<{
-    label: string,
-    value: string,
-    tip: string,
-    icon: Component
-    click: Function
-  }>,
-  click: Function
+    label: string;
+    value: string;
+    tip: string;
+    icon: Component;
+    click: Function;
+  }>;
+  click: Function;
 }
-const actions:Array<Action> = reactive([
+
+const currentAction = ref("move");
+let stopDrawBlock: Function | undefined;
+let stopDrawWall: Function | undefined;
+
+const actions: Array<Action> = reactive([
   {
-    key: 'move',
-    tip: 'Move Feature',
+    key: "move",
+    tip: "Move View",
     icon: markRaw(Move),
     click: () => {
-      currentAction.value = 'move'
-    }
+      currentAction.value = "move";
+      stopDrawBlock && stopDrawBlock();
+      stopDrawWall && stopDrawWall();
+      eventbus.emit(EventTypeEnum.DisableLayerSelect);
+    },
   },
   {
-    key: 'select',
-    tip: 'Select Feature',
+    key: "select",
+    tip: "Select Feature",
     icon: markRaw(SelectWindow),
     click: () => {
-      currentAction.value = 'select'
-    }
+      currentAction.value = "select";
+      stopDrawBlock && stopDrawBlock();
+      stopDrawWall && stopDrawWall();
+      eventbus.emit(EventTypeEnum.EnableLayerSelect);
+    },
   },
   {
-    key: 'draw-fill',
-    tip: 'Draw Fill Feature',
+    key: "draw-fill",
+    tip: "Draw Fill Feature",
     icon: markRaw(Area),
     click: () => {
-      currentAction.value = 'draw-fill'
+      currentAction.value = "draw-fill";
     },
     children: [
       {
-        label: 'Rectangle',
-        value: 'draw-fill-rectangle',
-        tip: 'Draw Rectangle',
+        label: "Rectangle",
+        value: "draw-fill-rectangle",
+        tip: "Draw Rectangle",
         icon: markRaw(Area),
-        click: () =>{
-          window.$message.info("draw-fill-rectangle");
-        }
+        click: () => {
+          stopDrawBlock && stopDrawBlock();
+          stopDrawBlock = blockLayer.value?.drawBlock(
+            DrawModeEnum.RECTANGLE_MODE,
+            () => {}
+          );
+        },
       },
       {
-        label: 'Polygon',
-        value: 'draw-fill-polygon',
-        tip: 'Draw Polygon',
+        label: "Polygon",
+        value: "draw-fill-polygon",
+        tip: "Draw Polygon",
         icon: markRaw(AreaCustom),
-        click: () =>{
-          window.$message.info("draw-fill-polygon");
-        }
+        click: () => {
+          stopDrawBlock && stopDrawBlock();
+          stopDrawBlock = blockLayer.value?.drawBlock(
+            DrawModeEnum.POLYGON_MODE,
+            () => {}
+          );
+        },
       },
       {
-        label: 'Circle',
-        value: 'draw-fill-circle',
-        tip: 'Draw Circle',
+        label: "Circle",
+        value: "draw-fill-circle",
+        tip: "Draw Circle",
         icon: markRaw(CircleDash),
-        click: () =>{
-          window.$message.info("draw-fill-circle");
-        }
-      }
+        click: () => {
+          stopDrawBlock && stopDrawBlock();
+          stopDrawBlock = blockLayer.value?.drawBlock(
+            DrawModeEnum.CIRCLE_MODE,
+            () => {}
+          );
+        },
+      },
     ],
   },
   {
-    key: 'draw-wall',
-    tip: 'Draw wall',
+    key: "draw-wall",
+    tip: "Draw wall",
     icon: markRaw(WallIcon),
     click: () => {
-      currentAction.value = 'draw-wall'
-    }
+      currentAction.value = "draw-wall";
+      stopDrawWall && stopDrawWall();
+      stopDrawWall = wallsLayer.value?.drawWall(
+        {
+          enableSnap: true,
+          snapThreshold: 10,
+          width: 0.3,
+        },
+        () => {}
+      );
+    },
   },
   {
-    key: 'draw-marker',
-    tip: 'Add marker',
+    key: "draw-marker",
+    tip: "Add marker",
     icon: markRaw(MarkerIcon),
     click: () => {
-      currentAction.value = 'draw-marker'
-    }
+      currentAction.value = "draw-marker";
+    },
   },
-])
-const renderOptionsLabel = (option:any)=>{
-  return <NSpace>
-    <NIcon component={option.icon}></NIcon>
-    <NText>{option.label}</NText>
-  </NSpace>
-}
-onMounted(()=>{
-})
+]);
+const renderOptionsLabel = (option: any) => {
+  return (
+    <NSpace>
+      <NIcon component={option.icon}></NIcon>
+      <NText>{option.label}</NText>
+    </NSpace>
+  );
+};
+onMounted(() => {});
 </script>
 <template>
   <div class="toolbar">
     <NSpace
-      style="background-color: var(--nl-bg-color);padding: 5px;box-sizing: border-box;border-radius: 5px;"
+      style="
+        background-color: var(--nl-bg-color);
+        padding: 5px;
+        box-sizing: border-box;
+        border-radius: 5px;
+      "
       :size="0"
     >
       <div
-        style="display: flex;align-items: center;"
+        style="display: flex; align-items: center"
         v-for="action in actions"
         :key="action.key"
       >
@@ -124,9 +175,9 @@ onMounted(()=>{
         >
           <NButton
             size="small"
-            :type="currentAction === action.key ? 'primary':'default'"
+            :type="currentAction === action.key ? 'primary' : 'default'"
             :quaternary="currentAction !== action.key"
-            :render-icon="()=>h(action.icon)"
+            :render-icon="() => h(action.icon)"
             @click="action.click()"
           ></NButton>
         </n-popselect>
@@ -134,13 +185,13 @@ onMounted(()=>{
           <template #trigger>
             <NButton
               size="small"
-              :type="currentAction === action.key ? 'primary':'default'"
+              :type="currentAction === action.key ? 'primary' : 'default'"
               :quaternary="currentAction !== action.key"
-              :render-icon="()=>h(action.icon)"
+              :render-icon="() => h(action.icon)"
               @click="action.click()"
             ></NButton>
           </template>
-          {{action.tip}}
+          {{ action.tip }}
         </NTooltip>
         <NDivider vertical></NDivider>
       </div>
@@ -149,11 +200,11 @@ onMounted(()=>{
 </template>
 <style scoped>
 .toolbar {
-    position: absolute;
-    height: 45px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  position: absolute;
+  height: 45px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

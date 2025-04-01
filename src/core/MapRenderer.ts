@@ -3,7 +3,6 @@ import { Utils } from "@/utils/index";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import * as THREE from "three";
 import editor from "./Editor";
-import MapboxLanguage from "@mapbox/mapbox-gl-language";
 import {
   ControlKeyEnum,
   CoordDisplayControl,
@@ -11,6 +10,21 @@ import {
 } from "./controls/index";
 import { StorageHandler } from "@/storage-handler";
 import * as turf from "@turf/turf";
+import {
+  backgroundLayer,
+  groundLayer,
+  wallsLayer,
+  blockLayer,
+} from "@/stores/LayersStore";
+import {
+  GroundLayer,
+  WallsLayer,
+  BackgroundLayer,
+  BlockLayer,
+} from "./layers/index";
+import { DrawingManager } from "./manager/DrawManager";
+import { eventbus } from "@/utils/eventbus";
+import { EventTypeEnum } from "./enum/Event";
 
 interface ControlItem {
   key: string;
@@ -18,19 +32,43 @@ interface ControlItem {
   position: mapboxgl.ControlPosition;
 }
 
-export const MapOrigin = [115.64853372179806, 23.224468596148014] as LngLatLike;
+export const MapOrigin = [113.9137900797507, 22.5387074495508] as LngLatLike;
+
+export type CustomMapOptions = {
+  geocoderContainer: string;
+} & Partial<MapOptions>;
 
 export class MapRnderer {
   private _options = {
     maxZoom: 30,
-    style: "mapbox://styles/mapbox/dark-v11",
+    // mapbox://styles/mapbox/dark-v11
+    style: {
+      version: 8,
+      glyphs: "/fonts/{fontstack}/{range}.pbf",
+      sources: {},
+      layers: [
+        // {
+        //   id: "background",
+        //   type: "background",
+        //   paint: {
+        //     "background-color": "#3f3f3f",
+        //   },
+        // },
+      ],
+      zoom: 20,
+      center: [0, 0],
+      metadata: {},
+    },
+    geocoderContainer: "",
     container: "",
     center: MapOrigin,
     zoom: 18,
     antialias: true,
-    accessToken:
-      "pk.eyJ1Ijoia2FuZ2JvNDkyNiIsImEiOiJjbHA5OGd1ZWEyOXA3MmtzMTZjeXlsYzkzIn0._hOucYQXZaXSzkcSO63SOA",
-  } as MapOptions;
+    doubleClickZoom: false,
+    accessToken: " ",
+    // accessToken:
+    //   "pk.eyJ1Ijoia2FuZ2JvNDkyNiIsImEiOiJjbHA5OGd1ZWEyOXA3MmtzMTZjeXlsYzkzIn0._hOucYQXZaXSzkcSO63SOA",
+  } as CustomMapOptions;
 
   private _controls: Array<ControlItem> = [
     {
@@ -43,13 +81,13 @@ export class MapRnderer {
       control: new mapboxgl.ScaleControl(),
       position: "bottom-left",
     },
-    {
-      key: "language",
-      control: new MapboxLanguage({
-        defaultLanguage: "zh-Hans",
-      }),
-      position: "top-right",
-    },
+    // {
+    //   key: "language",
+    //   control: new MapboxLanguage({
+    //     defaultLanguage: "zh-Hans",
+    //   }),
+    //   position: "top-right",
+    // },
     {
       key: ControlKeyEnum.COORD_CONTROL,
       control: new CoordDisplayControl(),
@@ -62,43 +100,88 @@ export class MapRnderer {
     },
   ];
 
+  private _layers: Map<string, any> = new Map();
+
   private _map: mapboxgl.Map | null = null;
   private _geocoder: HTMLElement | null = null;
 
-  constructor(options: Partial<MapOptions>) {
+  constructor(options: CustomMapOptions) {
     this._options = Object.assign(this._options, options);
   }
 
-  public async mount(containerId: string) {
-    if (this._map) {
-      this._map.remove();
-    }
-    this._map = new mapboxgl.Map({
-      ...this._options,
-      container: containerId,
+  public async mount(containerId: string, options?: Partial<MapOptions>) {
+    return new Promise(async (resolve, reject) => {
+      if (this._map) {
+        await this.destory();
+      }
+
+      if (options) {
+        this._options = Object.assign(this._options, options);
+      }
+
+      this._map = new mapboxgl.Map({
+        ...this._options,
+        container: containerId,
+      });
+
+      this._map.on("error", (e: any) => {
+        reject(e);
+      });
+
+      this._controls.forEach(({ control, position }) => {
+        this._map?.addControl(control, position);
+      });
+      await this._map.once("load");
+      await this._initCustomLayers();
+
+      DrawingManager.getInstance<DrawingManager>().init(this._map);
+      this.initThreeRenderer(this._map);
+      this._initMapBounds();
+      this._setupGeocoder(this._options.geocoderContainer);
+      this._addResizeListener(containerId);
+
+      resolve(this._map);
     });
-    this._controls.forEach(({ control, position }) => {
-      this._map?.addControl(control, position);
-    });
-
-    this._addResizeListener(containerId);
-    await this._map.once("load");
-
-    this.initThreeRenderer(this._map);
-    this._initMapBounds();
-    this._setupGeocoder();
-
-    return this._map;
   }
 
-  public destory() {
+  public async destory() {
+    this._controls.forEach(({ control }) => {
+      this._map?.removeControl(control);
+    });
+    this._layers.forEach((_layer, id) => {
+      //@ts-ignore
+      this.mapInstance?.removeLayer(id);
+    });
+    eventbus.removeAllListener(EventTypeEnum.ClearLayerSelectedState);
+    eventbus.removeAllListener(EventTypeEnum.DisableLayerSelect);
+    eventbus.removeAllListener(EventTypeEnum.EnableLayerSelect);
+    this._layers.clear();
     this._map?.remove();
+  }
+
+  private async _initCustomLayers() {
+    backgroundLayer.value = new BackgroundLayer({ id: "background-layer" });
+    groundLayer.value = new GroundLayer({ id: "ground-layer" });
+    wallsLayer.value = new WallsLayer({ id: "walls-layer" });
+    blockLayer.value = new BlockLayer({ id: "block-layer" });
+    const layers = [
+      backgroundLayer.value,
+      groundLayer.value,
+      wallsLayer.value,
+      blockLayer.value,
+    ];
+    layers.forEach((layer) => {
+      //@ts-ignore
+      this.mapInstance?.addLayer(layer);
+      this._layers.set(layer.id, layer);
+    });
+    await this.mapInstance?.once("styledata");
   }
 
   private _initMapBounds() {
     const features = StorageHandler.getAllFatures();
     if (features.length === 0) {
-      this._map?.setZoom(2);
+      this._map?.setZoom(20);
       return;
     }
     const geosjon = {
@@ -128,6 +211,10 @@ export class MapRnderer {
     return this._map;
   }
 
+  public getOptions() {
+    return this._options;
+  }
+
   private initThreeRenderer(map: mapboxgl.Map) {
     const canvas = map.getCanvas();
 
@@ -154,20 +241,28 @@ export class MapRnderer {
     editor.renderer.autoClear = false;
   }
 
-  private _setupGeocoder() {
-    const geocoder = new MapboxGeocoder({
-      accessToken: this._options.accessToken!,
+  private _setupGeocoder(container: string) {
+    try {
+      const geocoder = new MapboxGeocoder({
+        accessToken: this._options.accessToken!,
+        //@ts-ignore
+        localGeocoder: this._coordinatesGeocoder,
+        //@ts-ignore
+        mapboxgl: mapboxgl,
+        placeholder: "Seach for places",
+        reverseGeocode: true,
+      });
       //@ts-ignore
-      localGeocoder: this._coordinatesGeocoder,
-      //@ts-ignore
-      mapboxgl: mapboxgl,
-      placeholder: "Seach for places",
-      reverseGeocode: true,
-    });
-    //@ts-ignore
-    const el = geocoder.onAdd(this._map!);
-    this._geocoder = el;
-    return el;
+      this._geocoder = geocoder.onAdd(this._map!);
+
+      const el = document.getElementById(container);
+      if (el && this._geocoder) {
+        el.innerHTML = "";
+        el.appendChild(this._geocoder);
+      }
+    } catch (error: any) {
+      window.$message.warning(error.message);
+    }
   }
 
   private _coordinatesGeocoder = function (query: string) {

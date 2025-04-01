@@ -1,6 +1,7 @@
 import { modes, constants } from "@mapbox/mapbox-gl-draw";
 import { LngLatLike, Marker } from "mapbox-gl";
 import * as turf from "@turf/turf";
+import { DrawModeEnum } from ".";
 
 function isEventAtCoordinates(event, coordinates) {
   if (!event.lngLat) return false;
@@ -22,6 +23,15 @@ export const DrawPolygonMode: {
   ...modes.draw_polygon,
   markers: new Map<number, Marker>(),
   onClick(state: any, e: MapboxDraw.MapMouseEvent) {
+    if (e.originalEvent.button === 2) {
+      state.currentVertexPosition = 0;
+      this.markers.forEach((marker) => {
+        marker.remove();
+      });
+      this.deleteFeature(state.polygon.id);
+      this.changeMode(DrawModeEnum.POLYGON_MODE);
+      return;
+    }
     if (
       state.currentVertexPosition > 0 &&
       isEventAtCoordinates(

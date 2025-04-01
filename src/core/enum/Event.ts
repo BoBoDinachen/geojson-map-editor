@@ -6,4 +6,9 @@ export enum SelectLayerEnum {
 }
 export enum EventTypeEnum {
   SELECT_LAYER = "select:layer",
+  SELECT_FEATURE = "select:feature",
+  DisableLayerSelect = "DisableLayerSelect",
+  EnableLayerSelect = "EnableLayerSelect",
+  ClearLayerSelectedState = "ClearLayerSelectedState",
+  OpenContextMenu = "OpenContextMenu",
 }

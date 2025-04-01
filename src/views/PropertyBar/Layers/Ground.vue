@@ -45,7 +45,6 @@ const DrawGroundHook = {
 };
 
 const GroundFeauresManager = {
-  data: ref(groundLayer.value?.getFeatures() ?? []),
   columns: [
     {
       title: "Label",
@@ -61,7 +60,8 @@ const GroundFeauresManager = {
         return (
           <n-input-number
             style="width: 90px"
-            min={0.1}
+            min={0.01}
+            step={0.1}
             value={rowData.properties.height}
             onUpdateValue={(value: number) => {
               GroundFeauresManager.onChangeFillHeight(
@@ -129,18 +129,28 @@ const GroundFeauresManager = {
   onChangeFillHeight(index: number, height: number) {
     groundLayer.value?.updateFeature(index, { height });
   },
+
+  removeAllGround() {
+    window.$dialog.warning({
+      title: "Delete All grounds",
+      content: "Are you sure you want to delete all grounds?",
+      positiveText: "Yes",
+      negativeText: "No",
+      onPositiveClick: () => {
+        groundLayer.value?.removeAllFeatures();
+      },
+    });
+  },
 };
 </script>
 <template>
   <div class="ground-layer-container">
-    <NSpace align="center" justify="space-between">
-      <h3>Ground Layer</h3>
-    </NSpace>
     <NCard title="Draw Ground" size="small">
       <NFormItem label="Draw Mode:" label-placement="left">
         <n-radio-group v-model:value="DrawGroundHook.state.drawMode">
           <n-radio :value="DrawModeEnum.RECTANGLE_MODE"> Rectangle </n-radio>
           <n-radio :value="DrawModeEnum.POLYGON_MODE">Polygon</n-radio>
+          <n-radio :value="DrawModeEnum.CIRCLE_MODE">Circle</n-radio>
         </n-radio-group>
       </NFormItem>
       <NFormItem label="Fill Color:" label-placement="left">
@@ -149,18 +159,6 @@ const GroundFeauresManager = {
           :show-alpha="false"
         />
       </NFormItem>
-      <NFormItem label="Fill Height:" label-placement="left">
-        <NSlider v-model:value="DrawGroundHook.state.properties.height" />
-        <n-input-number
-          :min="0.1"
-          style="margin-left: 10px"
-          v-model:value="DrawGroundHook.state.properties.height"
-          size="small"
-        />
-      </NFormItem>
-      <!-- <NFormItem label="Fill Base Height:" label-placement="left">
-        <NSlider v-model:value="DrawGroundHook.state.properties.base_height" />
-      </NFormItem> -->
       <NSpace>
         <NButton
           :disabled="DrawGroundHook.state.drawing"
@@ -176,11 +174,17 @@ const GroundFeauresManager = {
       </NSpace>
     </NCard>
     <NCard title="Features" size="small">
+      <template #header-extra>
+        <NButton size="small" @click="GroundFeauresManager.removeAllGround"
+          >Delete All</NButton
+        >
+      </template>
       <NDataTable
         size="small"
-        :data="GroundFeauresManager.data.value"
+        :data="groundLayer?.getFeatures()"
         :columns="GroundFeauresManager.columns"
         :pagination="{ pageSize: 10 }"
+        :scroll-x="350"
       />
     </NCard>
   </div>

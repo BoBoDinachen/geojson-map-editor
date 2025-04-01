@@ -2,6 +2,7 @@
 import { DrawCustomModeThis } from "@mapbox/mapbox-gl-draw";
 import { LngLatLike, Marker } from "mapbox-gl";
 import * as turf from "@turf/turf";
+import { DrawModeEnum } from ".";
 
 const doubleClickZoom = {
   enable: (ctx) => {
@@ -32,6 +33,7 @@ const doubleClickZoom = {
 export const DrawRectangleMode = {
   widthMarker: null as Marker | null,
   heightMarker: null as Marker | null,
+  tipMarker: null as Marker | null,
   // When the mode starts this function will be called.
   onSetup: function (this: DrawCustomModeThis) {
     DrawRectangleMode.widthMarker = null;
@@ -69,6 +71,16 @@ export const DrawRectangleMode = {
   onClick: function (this: DrawCustomModeThis, state, e) {
     // if state.startPoint exist, means its second click
     // change to  simple_select mode
+    if (e.originalEvent.button === 2) {
+      state.startPoint = null;
+      DrawRectangleMode.heightMarker?.remove();
+      DrawRectangleMode.widthMarker?.remove();
+      DrawRectangleMode.tipMarker?.remove();
+      this.deleteFeature(state.rectangle.id);
+      //@ts-ignore
+      this.changeMode(DrawModeEnum.RECTANGLE_MODE);
+      return;
+    }
     if (
       state.startPoint &&
       state.startPoint[0] !== e.lngLat.lng &&
@@ -78,6 +90,7 @@ export const DrawRectangleMode = {
       state.endPoint = [e.lngLat.lng, e.lngLat.lat];
       DrawRectangleMode.heightMarker?.remove();
       DrawRectangleMode.widthMarker?.remove();
+      DrawRectangleMode.tipMarker?.remove();
       this.changeMode("simple_select", { featuresId: state.rectangle.id });
       return;
     }
@@ -104,6 +117,18 @@ export const DrawRectangleMode = {
     })
       .setLngLat(startPoint)
       .addTo(this.map);
+
+    DrawRectangleMode.tipMarker = new Marker({
+      color: "#fff",
+      element: document.createElement("div"),
+      className: "draw-tip-text",
+      anchor: "center",
+      offset: [120, 20],
+    })
+      .setLngLat(startPoint)
+      .addTo(this.map);
+    DrawRectangleMode.tipMarker.getElement().innerHTML =
+      "Right mouse click to redraw";
   },
   onMouseMove: function (state, e) {
     const self = DrawRectangleMode;
@@ -164,6 +189,7 @@ export const DrawRectangleMode = {
         self.heightMarker.getElement().innerHTML = `${height.toFixed(2)}m`;
       }
     }
+    DrawRectangleMode.tipMarker?.setLngLat(e.lngLat);
   },
   // Whenever a user clicks on a key while focused on the map, it will be sent here
   onKeyUp: function (this: DrawCustomModeThis, state, e) {
@@ -201,6 +227,7 @@ export const DrawRectangleMode = {
   onTrash: function (this: DrawCustomModeThis, state) {
     DrawRectangleMode.widthMarker?.remove();
     DrawRectangleMode.heightMarker?.remove();
+    DrawRectangleMode.tipMarker?.remove();
     this.deleteFeature(state.rectangle.id, { silent: true });
     this.changeMode("simple_select");
   },

@@ -63,8 +63,16 @@ function exportJSON(data: Object, filename = "data.json") {
   URL.revokeObjectURL(url);
 }
 
+function capitalizeFirstLetter(str: string) {
+  if (typeof str !== "string" || str.length === 0) {
+    return str;
+  }
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export const Utils = {
   debounce,
   copyToClipboard,
   exportJSON,
+  capitalizeFirstLetter,
 };

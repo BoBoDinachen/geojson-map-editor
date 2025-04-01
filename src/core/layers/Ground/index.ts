@@ -1,6 +1,6 @@
 import { reactive, ref, Ref } from "vue";
 import * as mapbox from "mapbox-gl";
-import { LayerGroup, LayerType } from "../../enum/Layer";
+import { LayerGroup, FeatureType } from "../../enum/Layer";
 import { DrawingManager } from "../../manager/DrawManager";
 import { CustomLayer } from "../CustomLayer";
 import { Feature } from "geojson";
@@ -22,9 +22,9 @@ export class GroundLayer extends CustomLayer {
     "stroke-opacity": 1,
     fill: "#64e2b7",
     "fill-opacity": 1,
-    height: 0.1,
+    height: 0.05,
     base_height: 0,
-    color: "#606060",
+    color: "#232221",
   });
 
   constructor(params: any) {
@@ -38,7 +38,7 @@ export class GroundLayer extends CustomLayer {
     styles.forEach((style) => {
       map.addLayer(style);
     });
-    console.log("ground layer add", map);
+    console.log("ground layer add");
   }
   onRemove(map: mapbox.Map) {}
   toggleVisible(): void {}
@@ -46,10 +46,11 @@ export class GroundLayer extends CustomLayer {
   drawGround(drawMode: DrawModeEnum, stopCb: () => void) {
     const onCreate = (feature: Feature) => {
       console.log(feature);
+      feature.id = this._features.value.length + 1;
       feature.properties = {
         ...this._feaureProperties.value,
         index: this._features.value.length + 1,
-        type: LayerType.Ground,
+        type: FeatureType.Ground,
       } as FeatureProperties;
       this._features.value.push(feature);
       this._updateSourceData(this._features.value);
@@ -84,6 +85,22 @@ export class GroundLayer extends CustomLayer {
     }
   }
 
+  public removeFeatureById(featureId: number) {
+    const index = this._features.value.findIndex((f) => f.id === featureId);
+    if (index > -1) {
+      this._features.value.splice(index, 1);
+      this._features.value.forEach((feature, index) => {
+        feature.properties!.index = index + 1;
+      });
+      this._updateSourceData(this._features.value);
+    }
+  }
+
+  public removeAllFeatures() {
+    this._features.value = [];
+    this._updateSourceData(this._features.value);
+  }
+
   public updateFeature(
     featureIndex: number,
     properties: Partial<FeatureProperties>
@@ -104,7 +121,7 @@ export class GroundLayer extends CustomLayer {
     // filter features
     const filteredFeatures = features.filter((feature) => {
       //@ts-ignore
-      return feature.properties.type === LayerType.Ground;
+      return feature.properties.type === FeatureType.Ground;
     });
     this._features.value = filteredFeatures;
     this._updateSourceData(filteredFeatures);

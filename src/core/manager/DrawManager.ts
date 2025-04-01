@@ -7,6 +7,7 @@ import {
   DrawPolygonMode,
   DrawModeEnum,
   SnapLineMode,
+  MeasureLineMode,
 } from "../draw_modes/index";
 
 /**
@@ -33,6 +34,7 @@ export class DrawingManager extends Singleton {
         [DrawModeEnum.POINT_MODE]: DrawPointMode,
         [DrawModeEnum.POLYGON_MODE]: DrawPolygonMode,
         [DrawModeEnum.SNAP_LINE_MODE]: SnapLineMode,
+        [DrawModeEnum.MEASURE_LINE_MODE]: MeasureLineMode,
       },
       displayControlsDefault: false,
     });
@@ -132,6 +134,44 @@ export class DrawingManager extends Singleton {
     } else {
       this._draw?.changeMode("draw_line_string");
     }
+    const event = (e) => {
+      cb(e.features[0]);
+      options.deleteAll && this._draw?.deleteAll();
+      this._stopDraw(event);
+      stopCb();
+    };
+    this._addEvent(event);
+    this._map?.once("draw.create", event);
+    // 长时间未绘制，自动停止绘制
+    if (options.duration) {
+      const timeout = setTimeout(() => {
+        options.deleteAll && this._draw?.deleteAll();
+        this._stopDraw(event);
+        stopCb();
+        console.log("长时间未绘制，自动停止绘制", options);
+      }, options.duration);
+      this._waitList.set(event, timeout);
+    }
+    return () => {
+      options.deleteAll && this._draw?.deleteAll();
+      this._stopDraw(event);
+      stopCb();
+    };
+  }
+
+  public drawMeasureLine(
+    cb: (feature: GeoJSON.Feature) => void,
+    stopCb: () => void,
+    options: DrawCore.DrawMeasureLineOptions
+  ) {
+    options = Object.assign(
+      {
+        deleteAll: false,
+      } as DrawCore.DrawMeasureLineOptions,
+      options
+    );
+
+    this._draw?.changeMode(DrawModeEnum.MEASURE_LINE_MODE);
     const event = (e) => {
       cb(e.features[0]);
       options.deleteAll && this._draw?.deleteAll();

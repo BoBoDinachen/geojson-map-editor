@@ -43,7 +43,6 @@ const DrawWallsManager = {
   },
 };
 const WallFeauresManager = {
-  data: ref(wallsLayer.value?.getFeatures() ?? []),
   columns: [
     {
       title: "Label",
@@ -156,7 +155,6 @@ const WallFeauresManager = {
       negativeText: "No",
       onPositiveClick: () => {
         wallsLayer.value?.removeAllFeatures();
-        WallFeauresManager.data.value = [];
       },
     });
   },
@@ -184,7 +182,7 @@ const WallFeauresManager = {
         ></NSlider>
       </NFormItem>
     </NCard>
-    <NCard title="Draw Wall" size="small">
+    <NCard title="Draw Settings" size="small">
       <NFormItem
         label="Wall Width (m):"
         label-placement="left"
@@ -262,9 +260,10 @@ const WallFeauresManager = {
       </template>
       <NDataTable
         size="small"
-        :data="WallFeauresManager.data.value"
+        :data="wallsLayer?.getFeatures()"
         :columns="WallFeauresManager.columns"
         :pagination="{ pageSize: 10 }"
+        :scroll-x="400"
       />
     </NCard>
   </div>

@@ -10,7 +10,7 @@ import {
 import { backgroundLayer } from "@/stores/LayersStore";
 import { eventbus } from "@/utils/eventbus";
 import { EventTypeEnum } from "@/core/enum/Event";
-import { LayerType } from "@/core/enum/Layer";
+import { FeatureType } from "@/core/enum/Layer";
 import { SideMenusStore } from "@/stores/SideMenusStore";
 
 defineOptions({
@@ -20,47 +20,50 @@ type LayerItem = {
   key: string;
   name: string;
   icon: Component;
-  locked: boolean;
   visibility: boolean;
-  instance?: ShallowRef<MapLayer | undefined>;
+  instance?: ShallowRef<MapLayer | null>;
   toggleVisible: () => void;
 };
 
 const getLayers = (): Array<LayerItem> => {
   return [
     {
-      key: LayerType.Label,
+      key: FeatureType.Label,
       name: "Labels",
       icon: Layers,
-      locked: false,
       visibility: false,
       toggleVisible() {},
     },
     {
-      key: LayerType.Wall,
+      key: FeatureType.Wall,
       name: "Walls",
       icon: Layers,
-      locked: false,
       visibility: false,
       toggleVisible() {},
     },
     {
-      key: LayerType.Ground,
+      key: FeatureType.Block,
+      name: "Blocks",
+      icon: Layers,
+      visibility: false,
+      toggleVisible() {},
+    },
+    {
+      key: FeatureType.Ground,
       name: "Ground",
       icon: Layers,
-      locked: true,
       visibility: false,
       toggleVisible() {},
     },
     {
-      key: LayerType.Background,
+      key: FeatureType.Background,
       name: "Background",
       icon: Layers,
-      locked: true,
-      instance: backgroundLayer,
-      visibility: backgroundLayer.value?.visible || false,
+      visibility: backgroundLayer.value?.showBaseMap || false,
       toggleVisible() {
-        backgroundLayer.value?.toggleVisible();
+        backgroundLayer.value?.changeShowBaseMap(
+          !backgroundLayer.value?.showBaseMap
+        );
       },
     },
   ];
@@ -109,23 +112,10 @@ onMounted(() => {
                 @click="layer.toggleVisible()"
               >
               </n-button>
-              <NTooltip placement="bottom">
-                <template #trigger>
-                  <n-button
-                    text
-                    :color="layer.locked ? '#414855' : ''"
-                    style="font-size: 24px"
-                    :render-icon="() => h(layer.locked ? Locked : Unlocked)"
-                  >
-                  </n-button>
-                </template>
-                {{ layer.locked ? "Unlock" : "Lock" }}
-              </NTooltip>
             </NSpace>
           </div>
         </NSpace>
       </NCollapseItem>
-      <NCollapseItem title="Selected Features" name="2"> </NCollapseItem>
     </NCollapse>
   </div>
 </template>

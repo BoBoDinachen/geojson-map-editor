@@ -1,7 +1,7 @@
 // 默认缓存期限为30天
 const DEFAULT_CACHE_TIME = 60 * 60 * 24 * 30;
 // 默认前缀
-export const PREFIX_KEY = "NOOPLOOP_MAP_EDITOR_";
+export const PREFIX_KEY = "GEOJSON_EDITOR_";
 
 type StorageOptions = {
   prefixKey?: string;

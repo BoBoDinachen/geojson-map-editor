@@ -17,7 +17,6 @@ export class ViewModeControl implements IControl {
   onRemove(map: Map): void {}
 
   public handleToggleViewMode() {
-    console.log("234234");
     const button: HTMLElement = document.querySelector(
       `#${this.containerId} > div`
     )!;

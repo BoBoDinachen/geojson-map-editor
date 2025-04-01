@@ -1,17 +1,17 @@
 import { LayerSpecification } from "mapbox-gl";
 export const getGroundStyles = (): LayerSpecification[] => {
   return [
-    {
-      id: "ground-outline",
-      type: "line",
-      source: "ground-source",
-      paint: {
-        "line-color": "#df2029",
-        "line-width": 3,
-        "line-opacity": 1,
-      },
-      layout: {},
-    },
+    // {
+    //   id: "ground-outline",
+    //   type: "line",
+    //   source: "ground-source",
+    //   paint: {
+    //     "line-color": "#df2029",
+    //     "line-width": 3,
+    //     "line-opacity": 1,
+    //   },
+    //   layout: {},
+    // },
     {
       id: "ground-fill",
       type: "fill-extrusion",

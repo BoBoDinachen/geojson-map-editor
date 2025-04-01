@@ -8,7 +8,12 @@ export const getWallStyles = (): LayerSpecification[] => {
       paint: {
         "line-color": "#df2029",
         "line-width": 3,
-        "line-opacity": 1,
+        "line-opacity": [
+          "case",
+          ["boolean", ["feature-state", "selected"], false],
+          1,
+          0,
+        ],
       },
       layout: {},
     },
@@ -17,7 +22,12 @@ export const getWallStyles = (): LayerSpecification[] => {
       type: "fill-extrusion",
       source: "walls-source",
       paint: {
-        "fill-extrusion-color": ["get", "color"],
+        "fill-extrusion-color": [
+          "case",
+          ["boolean", ["feature-state", "hover"], false],
+          "#ff9800",
+          ["get", "color"],
+        ],
         "fill-extrusion-base": ["get", "base_height"],
         "fill-extrusion-height": ["get", "height"],
         "fill-extrusion-opacity": 1,
@@ -29,9 +39,11 @@ export const getWallStyles = (): LayerSpecification[] => {
       type: "symbol",
       source: "walls-source",
       layout: {
-        "symbol-placement":'line',
+        "symbol-placement": "line",
         "text-field": "Wall-{index}",
         "text-size": 16,
+        "text-allow-overlap": true,
+        "text-optional": true,
       },
       paint: {
         "text-color": "#fff",

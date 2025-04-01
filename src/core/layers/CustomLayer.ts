@@ -29,7 +29,7 @@ export class CustomLayer {
   // 处理threejs的矩阵变换
   protected update(gl: WebGL2RenderingContext, matrix: number[]) {
     if (!this._map) {
-      this._map = editor.map?.mapInstance!;
+      this._map = editor?.mapInstance!;
     }
 
     const worldRotate = [Math.PI / 2, 0, 0];
