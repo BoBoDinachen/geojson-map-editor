@@ -131,6 +131,7 @@ export class MapRnderer {
       this._controls.forEach(({ control, position }) => {
         this._map?.addControl(control, position);
       });
+      this._addResizeListener(containerId);
       await this._map.once("load");
       await this._initCustomLayers();
 
@@ -138,7 +139,6 @@ export class MapRnderer {
       this.initThreeRenderer(this._map);
       this._initMapBounds();
       this._setupGeocoder(this._options.geocoderContainer);
-      this._addResizeListener(containerId);
 
       resolve(this._map);
     });
@@ -318,13 +318,14 @@ export class MapRnderer {
 
     const _self = this;
     const resizeHandler = Utils.debounce(() => {
+      console.log("map canvas resize");
       _self._map?.resize();
     }, 0);
     const resizeObserver = new ResizeObserver(resizeHandler);
-    this._map?.on("load", () => {
+    this._map?.once("load", () => {
       resizeObserver.observe(containerEl);
     });
-    this._map?.on("remove", () => {
+    this._map?.once("remove", () => {
       resizeObserver.disconnect();
     });
   }
