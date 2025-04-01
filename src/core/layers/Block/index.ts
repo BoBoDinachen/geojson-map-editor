@@ -184,10 +184,20 @@ export class BlockLayer extends CustomLayer {
       (options?: { exclude: string[] }) => {
         if (options && options.exclude?.includes("blocks")) return;
         this.disableSelect();
-        eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: null });
-        this.getFeatures().forEach((feature) => {
-          changeSelectedState(feature.id!, false);
-        });
+        if (
+          this.getFeatures().some((feature) => {
+            const state = this._map?.getFeatureState({
+              source: "block-source",
+              id: feature.id!,
+            });
+            return state?.selected ?? false;
+          })
+        ) {
+          eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: null });
+          this.getFeatures().forEach((feature) => {
+            changeSelectedState(feature.id!, false);
+          });
+        }
       }
     );
     eventbus.addListener(

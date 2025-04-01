@@ -65,8 +65,9 @@ const actions: Array<Action> = reactive([
     key: "draw-fill",
     tip: "Draw Fill Feature",
     icon: markRaw(Area),
-    click: () => {
+    click: (option: any) => {
       currentAction.value = "draw-fill";
+      eventbus.emit(EventTypeEnum.DisableLayerSelect);
     },
     children: [
       {

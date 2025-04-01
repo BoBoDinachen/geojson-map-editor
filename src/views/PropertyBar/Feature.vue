@@ -3,6 +3,8 @@ import { computed, onMounted, ref, watch } from "vue";
 import { FeatureType } from "@/core/enum/Layer";
 import { Utils } from "@/utils/index";
 import { blockLayer, wallsLayer } from "@/stores/LayersStore";
+import { eventbus } from "@/utils/eventbus";
+import { EventTypeEnum } from "@/core/enum/Event";
 
 defineOptions({
   name: "FeaturePanel",
@@ -50,6 +52,28 @@ const changeFeatureProps = (key: string, value: any) => {
   }
 };
 
+const handleRemoveFeature = () => {
+  window.$dialog.warning({
+    title: "Remove Feature",
+    content: "Are you sure you want to remove this feature?",
+    positiveText: "Yes",
+    negativeText: "No",
+    onPositiveClick: () => {
+      switch (props.feature.properties["type"]) {
+        case FeatureType.Block:
+          blockLayer.value?.removeFeatureById(props.feature.id);
+          break;
+        case FeatureType.Wall:
+          wallsLayer.value?.removeFeatureById(props.feature.id);
+          break;
+        default:
+          break;
+      }
+      eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: null });
+    },
+  });
+};
+
 onMounted(() => {});
 </script>
 <template>
@@ -95,7 +119,7 @@ onMounted(() => {});
         ></NColorPicker>
       </n-form-item>
       <template #action>
-        <NButton type="error">Remove</NButton>
+        <NButton type="error" @click="handleRemoveFeature">Remove</NButton>
       </template>
     </NCard>
     <!-- <div>{{ feature }}</div> -->
