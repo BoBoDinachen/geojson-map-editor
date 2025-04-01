@@ -6,7 +6,7 @@ import SettingsModal from "../settings/index.vue";
 import ExportModal from "./ExportModal.vue";
 import * as turf from "@turf/turf";
 import { UploadFileInfo, UploadInst } from "naive-ui";
-import { wallsLayer, groundLayer,blockLayer } from "@/stores/LayersStore";
+import { wallsLayer, groundLayer, blockLayer } from "@/stores/LayersStore";
 import editor from "@/core/Editor";
 import { LngLatBoundsLike } from "mapbox-gl";
 
@@ -75,11 +75,7 @@ defineOptions({
         </NUpload>
         <NButton @click="showExportModal = true">Export</NButton>
         <ThemeSwitch></ThemeSwitch>
-        <NButton
-          :render-icon="() => h(Settings)"
-          @click="showSettingsModal = true"
-          >Settings</NButton
-        >
+        <NButton :render-icon="() => h(Settings)"></NButton>
       </div>
     </div>
     <SettingsModal v-model:show="showSettingsModal"></SettingsModal>
