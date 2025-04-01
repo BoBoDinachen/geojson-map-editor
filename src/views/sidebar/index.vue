@@ -1,13 +1,12 @@
 <script lang="ts" setup>
-import { Component, computed, h, onMounted, Ref, ShallowRef } from "vue";
+import { Component, h, onMounted, ShallowRef } from "vue";
+import { Layers, ViewFilled, ViewOffFilled } from "@vicons/carbon";
 import {
-  Layers,
-  ViewFilled,
-  ViewOffFilled,
-  Locked,
-  Unlocked,
-} from "@vicons/carbon";
-import { backgroundLayer } from "@/stores/LayersStore";
+  backgroundLayer,
+  blockLayer,
+  groundLayer,
+  wallsLayer,
+} from "@/stores/LayersStore";
 import { eventbus } from "@/utils/eventbus";
 import { EventTypeEnum } from "@/core/enum/Event";
 import { FeatureType } from "@/core/enum/Layer";
@@ -38,22 +37,34 @@ const getLayers = (): Array<LayerItem> => {
       key: FeatureType.Wall,
       name: "Walls",
       icon: Layers,
-      visibility: false,
-      toggleVisible() {},
+      visibility: wallsLayer.value?.wallsVisible || false,
+      toggleVisible() {
+        if (wallsLayer.value) {
+          wallsLayer.value.wallsVisible = !wallsLayer.value.wallsVisible;
+        }
+      },
     },
     {
       key: FeatureType.Block,
       name: "Blocks",
       icon: Layers,
-      visibility: false,
-      toggleVisible() {},
+      visibility: blockLayer.value?.blocksVisible || false,
+      toggleVisible() {
+        if (blockLayer.value) {
+          blockLayer.value.blocksVisible = !blockLayer.value.blocksVisible;
+        }
+      },
     },
     {
       key: FeatureType.Ground,
       name: "Ground",
       icon: Layers,
-      visibility: false,
-      toggleVisible() {},
+      visibility: groundLayer.value?.groundsVisible || false,
+      toggleVisible() {
+        if (groundLayer.value) {
+          groundLayer.value.groundsVisible = !groundLayer.value.groundsVisible;
+        }
+      },
     },
     {
       key: FeatureType.Background,

@@ -19,6 +19,7 @@ export class WallsLayer extends CustomLayer {
   private _selectEnabled = false;
   private _features = ref<Array<Feature>>([]);
   private _opacity = ref(1);
+  private _wallsVisible = ref(true);
   private _feaureProperties = ref<FeatureProperties>({
     stroke: "#000000",
     "stroke-width": 1,
@@ -191,6 +192,21 @@ export class WallsLayer extends CustomLayer {
 
   public enableSelect() {
     this._selectEnabled = true;
+  }
+
+  public get wallsVisible() {
+    return this._wallsVisible.value;
+  }
+
+  public set wallsVisible(value: boolean) {
+    this._wallsVisible.value = value;
+    getWallStyles().forEach((layer) => {
+      this._map?.setLayoutProperty(
+        layer.id,
+        "visibility",
+        value ? "visible" : "none"
+      );
+    });
   }
 
   private _initFeatures() {

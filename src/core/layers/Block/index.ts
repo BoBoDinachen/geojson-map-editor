@@ -17,6 +17,7 @@ export class BlockLayer extends CustomLayer {
   private _selectEnabled = false;
   private _drawManager = DrawingManager.getInstance<DrawingManager>();
   private _features = ref<Array<Feature>>([]);
+  private _blocksVisible = ref(true);
   private _feaureProperties = ref<FeatureProperties>({
     stroke: "#000000",
     "stroke-width": 1,
@@ -135,6 +136,21 @@ export class BlockLayer extends CustomLayer {
 
   public enableSelect() {
     this._selectEnabled = true;
+  }
+
+  public get blocksVisible() {
+    return this._blocksVisible.value;
+  }
+
+  public set blocksVisible(value: boolean) {
+    this._blocksVisible.value = value;
+    getBlockStyles().forEach((layer) => {
+      this._map?.setLayoutProperty(
+        layer.id,
+        "visibility",
+        value ? "visible" : "none"
+      );
+    });
   }
 
   private _initFeatures() {

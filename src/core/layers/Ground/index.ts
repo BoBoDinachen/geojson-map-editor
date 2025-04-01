@@ -13,9 +13,8 @@ export class GroundLayer extends CustomLayer {
   public groupId: number = LayerGroup.Ground;
   public visible: Ref<boolean, boolean> = ref(true);
   private _drawManager = DrawingManager.getInstance<DrawingManager>();
-
   private _features = ref<Array<Feature>>([]);
-
+  private _groundsVisible = ref(true);
   private _feaureProperties = ref<FeatureProperties>({
     stroke: "#000000",
     "stroke-width": 1,
@@ -125,6 +124,21 @@ export class GroundLayer extends CustomLayer {
     });
     this._features.value = filteredFeatures;
     this._updateSourceData(filteredFeatures);
+  }
+
+  public get groundsVisible() {
+    return this._groundsVisible.value;
+  }
+
+  public set groundsVisible(value: boolean) {
+    this._groundsVisible.value = value;
+    getGroundStyles().forEach((layer) => {
+      this._map?.setLayoutProperty(
+        layer.id,
+        "visibility",
+        value ? "visible" : "none"
+      );
+    });
   }
 
   private _initFeatures() {
