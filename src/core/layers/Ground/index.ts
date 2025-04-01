@@ -79,6 +79,7 @@ export class GroundLayer extends CustomLayer {
       this._features.value.splice(index, 1);
       this._features.value.forEach((feature, index) => {
         feature.properties!.index = index + 1;
+        feature.id = index + 1;
       });
       this._updateSourceData(this._features.value);
     }
@@ -90,6 +91,7 @@ export class GroundLayer extends CustomLayer {
       this._features.value.splice(index, 1);
       this._features.value.forEach((feature, index) => {
         feature.properties!.index = index + 1;
+        feature.id = index + 1;
       });
       this._updateSourceData(this._features.value);
     }

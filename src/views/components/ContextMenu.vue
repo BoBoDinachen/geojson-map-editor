@@ -16,6 +16,7 @@ import { FeatureType } from "@/core/enum/Layer";
 import { blockLayer, wallsLayer } from "@/stores/LayersStore";
 import { eventbus } from "@/utils/eventbus";
 import { ref, onMounted, onUnmounted, useTemplateRef } from "vue";
+import { MenuKeyEnum, SideMenusStore } from "@/stores/SideMenusStore";
 
 type MenuItem = {
   label: string;
@@ -66,6 +67,7 @@ const showMenu = (pos: any, data: any) => {
           default:
             break;
         }
+        eventbus.emit(EventTypeEnum.ClearLayerSelectedState);
       },
     },
     {

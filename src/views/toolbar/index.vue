@@ -76,6 +76,7 @@ const actions: Array<Action> = reactive([
         tip: "Draw Rectangle",
         icon: markRaw(Area),
         click: () => {
+          eventbus.emit(EventTypeEnum.DisableLayerSelect);
           stopDrawBlock && stopDrawBlock();
           stopDrawBlock = blockLayer.value?.drawBlock(
             DrawModeEnum.RECTANGLE_MODE,
@@ -89,6 +90,7 @@ const actions: Array<Action> = reactive([
         tip: "Draw Polygon",
         icon: markRaw(AreaCustom),
         click: () => {
+          eventbus.emit(EventTypeEnum.DisableLayerSelect);
           stopDrawBlock && stopDrawBlock();
           stopDrawBlock = blockLayer.value?.drawBlock(
             DrawModeEnum.POLYGON_MODE,
@@ -102,6 +104,7 @@ const actions: Array<Action> = reactive([
         tip: "Draw Circle",
         icon: markRaw(CircleDash),
         click: () => {
+          eventbus.emit(EventTypeEnum.DisableLayerSelect);
           stopDrawBlock && stopDrawBlock();
           stopDrawBlock = blockLayer.value?.drawBlock(
             DrawModeEnum.CIRCLE_MODE,
@@ -117,6 +120,7 @@ const actions: Array<Action> = reactive([
     icon: markRaw(WallIcon),
     click: () => {
       currentAction.value = "draw-wall";
+      eventbus.emit(EventTypeEnum.DisableLayerSelect);
       stopDrawWall && stopDrawWall();
       stopDrawWall = wallsLayer.value?.drawWall(
         {
@@ -134,6 +138,7 @@ const actions: Array<Action> = reactive([
     icon: markRaw(MarkerIcon),
     click: () => {
       currentAction.value = "draw-marker";
+      eventbus.emit(EventTypeEnum.DisableLayerSelect);
     },
   },
 ]);

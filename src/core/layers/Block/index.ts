@@ -29,6 +29,9 @@ export class BlockLayer extends CustomLayer {
     color: "#606060",
   });
 
+  private _selectedFeatureId: any = null;
+  private _hoveredFeatureId: any = null;
+
   constructor(params: any) {
     super(params);
   }
@@ -83,6 +86,7 @@ export class BlockLayer extends CustomLayer {
       this._features.value.splice(index, 1);
       this._features.value.forEach((feature, index) => {
         feature.properties!.index = index + 1;
+        feature.id = index + 1;
       });
       this._updateSourceData(this._features.value);
     }
@@ -94,6 +98,7 @@ export class BlockLayer extends CustomLayer {
       this._features.value.splice(index, 1);
       this._features.value.forEach((feature, index) => {
         feature.properties!.index = index + 1;
+        feature.id = index + 1;
       });
       this._updateSourceData(this._features.value);
     }
@@ -153,6 +158,24 @@ export class BlockLayer extends CustomLayer {
     });
   }
 
+  private _changeSelectedState = (
+    featureId: number | string,
+    isSelected: boolean
+  ) => {
+    this._map?.setFeatureState(
+      { source: "block-source", id: featureId },
+      { selected: isSelected }
+    );
+  };
+
+  public clearSelectState() {
+    this._selectedFeatureId = null;
+    this.getFeatures().forEach((feature) => {
+      this._changeSelectedState(feature.id!, false);
+    });
+    eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: null });
+  }
+
   private _initFeatures() {
     const features = StorageHandler.getBlockFeatures();
     this._features.value = features;
@@ -193,10 +216,7 @@ export class BlockLayer extends CustomLayer {
             return state?.selected ?? false;
           })
         ) {
-          eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: null });
-          this.getFeatures().forEach((feature) => {
-            changeSelectedState(feature.id!, false);
-          });
+          this.clearSelectState();
         }
       }
     );
@@ -208,12 +228,8 @@ export class BlockLayer extends CustomLayer {
       }
     );
     eventbus.addListener(EventTypeEnum.ClearLayerSelectedState, () => {
-      this.getFeatures().forEach((feature) => {
-        changeSelectedState(feature.id!, false);
-      });
+      this.clearSelectState();
     });
-
-    let hoveredFeatureId: any = null;
 
     const isBlockFeature = (feature: any) => {
       return feature.properties!["type"] == FeatureType.Block;
@@ -223,16 +239,6 @@ export class BlockLayer extends CustomLayer {
       this._map?.setFeatureState(
         { source: "block-source", id: featureId },
         { hover: isHover }
-      );
-    };
-
-    const changeSelectedState = (
-      featureId: number | string,
-      isSelected: boolean
-    ) => {
-      this._map?.setFeatureState(
-        { source: "block-source", id: featureId },
-        { selected: isSelected }
       );
     };
 
@@ -246,18 +252,25 @@ export class BlockLayer extends CustomLayer {
       if (isBlockFeature(feature)) {
         console.log("block feature clicked", feature);
         eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature });
-        changeSelectedState(feature.id!, true);
+        this._selectedFeatureId = feature.id!;
+        this._changeSelectedState(feature.id!, true);
       } else {
       }
     });
     this._map?.on("contextmenu", [`block-fill`], (e) => {
       if (e.defaultPrevented) return;
       if (!this._selectEnabled) return;
+      if (
+        this._selectedFeatureId &&
+        this._selectedFeatureId !== this._hoveredFeatureId
+      ) {
+        return;
+      }
       eventbus.emit(EventTypeEnum.OpenContextMenu, {
         pos: e.point,
         data: {
           type: FeatureType.Block,
-          featureId: hoveredFeatureId,
+          featureId: this._hoveredFeatureId,
         },
       });
     });
@@ -268,14 +281,14 @@ export class BlockLayer extends CustomLayer {
         this._map!.getCanvas().style.cursor = "pointer";
         this._map?.dragRotate.disable();
         const feature = e.features![0];
-        if (hoveredFeatureId !== null) {
+        if (this._hoveredFeatureId !== null) {
           if (isBlockFeature(feature)) {
-            changeHoverState(hoveredFeatureId, false);
+            changeHoverState(this._hoveredFeatureId, false);
           }
         }
-        hoveredFeatureId = feature.id!;
+        this._hoveredFeatureId = feature.id!;
         if (isBlockFeature(feature)) {
-          changeHoverState(hoveredFeatureId, true);
+          changeHoverState(this._hoveredFeatureId, true);
         }
       }
     });
@@ -286,11 +299,11 @@ export class BlockLayer extends CustomLayer {
     this._map?.on("mouseleave", [`block-fill`], (e) => {
       if (e.defaultPrevented) return;
       if (!this._selectEnabled) return;
-      if (hoveredFeatureId !== null) {
+      if (this._hoveredFeatureId !== null) {
         this._map!.getCanvas().style.cursor = "";
-        changeHoverState(hoveredFeatureId, false);
+        changeHoverState(this._hoveredFeatureId, false);
       }
-      hoveredFeatureId = null;
+      this._hoveredFeatureId = null;
       this._map?.dragRotate.enable();
     });
   }
