@@ -46,6 +46,7 @@ export const getBlockStyles = (): LayerSpecification[] => {
         "text-color": "#fff",
         "text-halo-color": "#000",
         "text-halo-width": 1,
+        "symbol-z-offset": ["get", "height"],
       },
     },
   ];

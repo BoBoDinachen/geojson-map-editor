@@ -225,11 +225,20 @@ export class WallsLayer extends CustomLayer {
   };
 
   public clearSelectState() {
-    this._selectedFeatureId = null;
-    this.getFeatures().forEach((feature) => {
-      this._changeSelectedState(feature.id!, false);
+    const hasSelected = this.getFeatures().some((feature) => {
+      const state = this._map?.getFeatureState({
+        source: "walls-source",
+        id: feature.id!,
+      });
+      return state?.selected ?? false;
     });
-    eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: null });
+    if (hasSelected) {
+      this._selectedFeatureId = null;
+      this.getFeatures().forEach((feature) => {
+        this._changeSelectedState(feature.id!, false);
+      });
+      eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: null });
+    }
   }
 
   private _initFeatures() {
@@ -263,17 +272,7 @@ export class WallsLayer extends CustomLayer {
       (options?: { exclude: string[] }) => {
         if (options && options.exclude?.includes("walls")) return;
         this.disableSelect();
-        if (
-          this.getFeatures().some((feature) => {
-            const state = this._map?.getFeatureState({
-              source: "walls-source",
-              id: feature.id!,
-            });
-            return state?.selected ?? false;
-          })
-        ) {
-          this.clearSelectState();
-        }
+        this.clearSelectState();
       }
     );
     eventbus.addListener(

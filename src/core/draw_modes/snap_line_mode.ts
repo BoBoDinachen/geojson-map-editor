@@ -139,7 +139,6 @@ export const SnapLineMode: ISnapLineMode = {
     // 移动的时候检查是否有 snap点
     let nearestSnapPoint: Position | null = null;
     let minDistance = Infinity;
-
     state.bounds.forEach((coordinates) => {
       const nearest = turf.nearestPointOnLine(
         turf.lineString(coordinates),
@@ -224,6 +223,10 @@ export const SnapLineMode: ISnapLineMode = {
         {},
         { silent: true }
       );
+      this.drawPointMarker?.remove();
+      this.distanceMarkers.forEach((marker) => {
+        marker.remove();
+      });
     }
   },
   onTrash(state: any): void {

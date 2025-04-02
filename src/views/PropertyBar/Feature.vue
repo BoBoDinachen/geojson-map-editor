@@ -83,6 +83,20 @@ onMounted(() => {});
       <n-form-item label="Feature Type" label-placement="left">
         <n-tag type="info">{{ props.feature.properties["type"] }}</n-tag>
       </n-form-item>
+      <n-form-item
+        v-if="feature.properties.type === FeatureType.Block"
+        label="Base Height (m)"
+        label-placement="left"
+      >
+        <n-input-number
+          :value="formData.base_height"
+          @update:value="
+            (v) => {
+              changeFeatureProps('base_height', v);
+            }
+          "
+        ></n-input-number>
+      </n-form-item>
       <n-form-item label="Fill Height (m)" label-placement="left">
         <n-input-number
           :value="formData.height"

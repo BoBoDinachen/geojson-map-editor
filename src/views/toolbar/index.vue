@@ -91,6 +91,7 @@ const actions: Array<Action> = reactive([
         icon: markRaw(AreaCustom),
         click: () => {
           eventbus.emit(EventTypeEnum.DisableLayerSelect);
+          stopDrawWall && stopDrawWall();
           stopDrawBlock && stopDrawBlock();
           stopDrawBlock = blockLayer.value?.drawBlock(
             DrawModeEnum.POLYGON_MODE,
@@ -121,6 +122,7 @@ const actions: Array<Action> = reactive([
     click: () => {
       currentAction.value = "draw-wall";
       eventbus.emit(EventTypeEnum.DisableLayerSelect);
+      stopDrawBlock && stopDrawBlock();
       stopDrawWall && stopDrawWall();
       stopDrawWall = wallsLayer.value?.drawWall(
         {

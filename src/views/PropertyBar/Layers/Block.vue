@@ -17,7 +17,7 @@ const DrawBlockHook = {
     drawMode: DrawModeEnum.RECTANGLE_MODE,
     drawing: false,
     properties:
-    blockLayer.value?.getFeatureProperties() ??
+      blockLayer.value?.getFeatureProperties() ??
       ({
         stroke: "#000000",
         "stroke-width": 1,
@@ -51,6 +51,26 @@ const BlockFeauresManager = {
       key: "properties.index",
       render(rowData: any, rowIndex) {
         return `Block-${rowData.properties.index}`;
+      },
+    },
+    {
+      title: "Base Height(m)",
+      key: "properties.base_height",
+      render(rowData: any, rowIndex) {
+        return (
+          <n-input-number
+            style="width: 90px"
+            min={0.1}
+            value={rowData.properties.height}
+            onUpdateValue={(value: number) => {
+              BlockFeauresManager.onChangeBaseHeight(
+                rowData.properties.index,
+                value
+              );
+            }}
+            size="small"
+          />
+        );
       },
     },
     {
@@ -107,7 +127,7 @@ const BlockFeauresManager = {
                 positiveText: "Yes",
                 negativeText: "No",
                 onPositiveClick: () => {
-                    blockLayer.value?.removeFeature(rowData.properties.index);
+                  blockLayer.value?.removeFeature(rowData.properties.index);
                 },
               });
             }}
@@ -127,6 +147,10 @@ const BlockFeauresManager = {
 
   onChangeFillHeight(index: number, height: number) {
     blockLayer.value?.updateFeature(index, { height });
+  },
+
+  onChangeBaseHeight(index: number, height: number) {
+    blockLayer.value?.updateFeature(index, { base_height: height });
   },
 
   removeAllBlock() {
@@ -185,7 +209,7 @@ const BlockFeauresManager = {
       </NSpace>
     </NCard>
     <NCard title="Features" size="small">
-        <template #header-extra>
+      <template #header-extra>
         <NButton size="small" @click="BlockFeauresManager.removeAllBlock"
           >Delete All</NButton
         >
@@ -195,7 +219,7 @@ const BlockFeauresManager = {
         :data="blockLayer?.getFeatures()"
         :columns="BlockFeauresManager.columns"
         :pagination="{ pageSize: 10 }"
-        :scroll-x="350"
+        :scroll-x="450"
       />
     </NCard>
   </div>

@@ -16,7 +16,6 @@ import { FeatureType } from "@/core/enum/Layer";
 import { blockLayer, wallsLayer } from "@/stores/LayersStore";
 import { eventbus } from "@/utils/eventbus";
 import { ref, onMounted, onUnmounted, useTemplateRef } from "vue";
-import { MenuKeyEnum, SideMenusStore } from "@/stores/SideMenusStore";
 
 type MenuItem = {
   label: string;
@@ -49,13 +48,13 @@ const showMenu = (pos: any, data: any) => {
   menuStyle.value = { top: `${posY}px`, left: `${posX}px` };
   menuItems.value = [
     {
-      label: "编辑",
+      label: "Edit",
       action: () => {
-        window.$message.info("暂未支持");
+        window.$message.info("Not Supported");
       },
     },
     {
-      label: "删除",
+      label: "Remove",
       action: () => {
         switch (data.type) {
           case FeatureType.Block:
@@ -71,9 +70,9 @@ const showMenu = (pos: any, data: any) => {
       },
     },
     {
-      label: "复制",
+      label: "Copy",
       action: () => {
-        window.$message.info("暂未支持");
+        window.$message.info("Not Supported");
       },
     },
   ];
