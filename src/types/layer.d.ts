@@ -7,11 +7,6 @@ declare interface MapLayer {
 }
 
 declare interface FeatureProperties {
-  stroke: string;
-  "stroke-width": number;
-  "stroke-opacity": number;
-  fill: string;
-  "fill-opacity": number;
   height: number;
   base_height: number;
   color: string;

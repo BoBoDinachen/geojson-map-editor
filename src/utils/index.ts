@@ -70,9 +70,19 @@ function capitalizeFirstLetter(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+/**
+ * 延时函数
+ * @param ms
+ * @returns
+ */
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export const Utils = {
   debounce,
   copyToClipboard,
   exportJSON,
   capitalizeFirstLetter,
+  sleep,
 };

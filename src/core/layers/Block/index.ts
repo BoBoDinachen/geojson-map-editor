@@ -1,4 +1,4 @@
-import { reactive, ref, Ref } from "vue";
+import { ref, Ref } from "vue";
 import * as mapbox from "mapbox-gl";
 import { LayerGroup, FeatureType } from "../../enum/Layer";
 import { DrawingManager } from "../../manager/DrawManager";
@@ -19,11 +19,6 @@ export class BlockLayer extends CustomLayer {
   private _features = ref<Array<Feature>>([]);
   private _blocksVisible = ref(true);
   private _feaureProperties = ref<FeatureProperties>({
-    stroke: "#000000",
-    "stroke-width": 1,
-    "stroke-opacity": 1,
-    fill: "#64e2b7",
-    "fill-opacity": 1,
     height: 5,
     base_height: 0,
     color: "#606060",

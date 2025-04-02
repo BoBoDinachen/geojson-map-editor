@@ -22,7 +22,9 @@ export const getGroundStyles = (): LayerSpecification[] => {
         "fill-extrusion-height": ["get", "height"],
         "fill-extrusion-opacity": 1,
       },
-      layout: {},
+      layout: {
+        // "fill-sort-key": ["get", "index"],
+      },
     },
     {
       id: "ground-fill-text",

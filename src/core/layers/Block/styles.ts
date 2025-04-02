@@ -43,10 +43,10 @@ export const getBlockStyles = (): LayerSpecification[] => {
         "text-size": 16,
       },
       paint: {
+        "symbol-z-offset": ["coalesce", ["get", "height"], 0],
         "text-color": "#fff",
         "text-halo-color": "#000",
         "text-halo-width": 1,
-        "symbol-z-offset": ["get", "height"],
       },
     },
   ];
