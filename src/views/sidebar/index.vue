@@ -27,13 +27,6 @@ type LayerItem = {
 const getLayers = (): Array<LayerItem> => {
   return [
     {
-      key: FeatureType.Label,
-      name: "Labels",
-      icon: Layers,
-      visibility: false,
-      toggleVisible() {},
-    },
-    {
       key: FeatureType.Wall,
       name: "Walls",
       icon: Layers,
