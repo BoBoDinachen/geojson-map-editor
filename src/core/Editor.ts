@@ -36,7 +36,15 @@ class Editor {
           version: 8,
           glyphs: "/fonts/{fontstack}/{range}.pbf",
           sources: {},
-          layers: [],
+          layers: [
+            {
+              id: "background",
+              type: "background",
+              paint: {
+                "background-color": "#3f3f3f",
+              },
+            },
+          ],
           zoom: 20,
           center: [0, 0],
           metadata: {},

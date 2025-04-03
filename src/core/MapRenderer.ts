@@ -46,15 +46,7 @@ export class MapRnderer {
       version: 8,
       glyphs: "/fonts/{fontstack}/{range}.pbf",
       sources: {},
-      layers: [
-        // {
-        //   id: "background",
-        //   type: "background",
-        //   paint: {
-        //     "background-color": "#3f3f3f",
-        //   },
-        // },
-      ],
+      layers: [],
       zoom: 20,
       center: [0, 0],
       metadata: {},
