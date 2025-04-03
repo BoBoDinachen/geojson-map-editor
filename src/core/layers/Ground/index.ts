@@ -7,6 +7,8 @@ import { Feature } from "geojson";
 import { getGroundStyles } from "./styles";
 import { DrawModeEnum } from "@/core/draw_modes";
 import { StorageHandler } from "@/storage-handler";
+import UndoRedoManager from "@/core/manager/UndoRedoManager";
+import { AddFeatureAction } from "@/core/actions";
 
 export class GroundLayer extends CustomLayer {
   id: string = "ground-layer";
@@ -46,8 +48,7 @@ export class GroundLayer extends CustomLayer {
         index: this._features.value.length + 1,
         type: FeatureType.Ground,
       } as FeatureProperties;
-      this._features.value.push(feature);
-      this._updateSourceData(this._features.value);
+      UndoRedoManager.execute(new AddFeatureAction(this, feature));
     };
 
     const stopDraw = this._drawManager.drawPlane(onCreate, stopCb, {
@@ -64,6 +65,15 @@ export class GroundLayer extends CustomLayer {
 
   public getFeatureProperties() {
     return this._feaureProperties.value;
+  }
+
+  public addFeature(feature: Feature) {
+    this._features.value.push(feature);
+    this._features.value.forEach((feature, index) => {
+      feature.properties!.index = index + 1;
+      feature.id = index + 1;
+    });
+    this._updateSourceData(this._features.value);
   }
 
   public removeFeature(featureIndex: number) {

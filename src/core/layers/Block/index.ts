@@ -9,6 +9,8 @@ import { DrawModeEnum } from "@/core/draw_modes";
 import { StorageHandler } from "@/storage-handler";
 import { eventbus } from "@/utils/eventbus";
 import { EventTypeEnum } from "@/core/enum/Event";
+import UndoRedoManager from "@/core/manager/UndoRedoManager";
+import { AddFeatureAction } from "@/core/actions";
 
 export class BlockLayer extends CustomLayer {
   id: string = "block-layer";
@@ -53,7 +55,7 @@ export class BlockLayer extends CustomLayer {
         index: this._features.value.length + 1,
         type: FeatureType.Block,
       } as FeatureProperties;
-      this.addFeature(feature);
+      UndoRedoManager.execute(new AddFeatureAction(this, feature));
     };
 
     const stopDraw = this._drawManager.drawPlane(onCreate, stopCb, {

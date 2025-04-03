@@ -4,9 +4,9 @@ import { blockLayer } from "@/stores/LayersStore";
 import { NButton, NColorPicker, NSpace } from "naive-ui";
 import { TableColumn } from "naive-ui/es/data-table/src/interface";
 import { reactive, ref } from "vue";
-import { StorageHandler } from "@/storage-handler/index";
-import CountdownButton from "@/views/components/CountdownButton.vue";
 import { Delete } from "@vicons/carbon";
+import UndoRedoManager from "@/core/manager/UndoRedoManager";
+import { RemoveFeatureAction } from "@/core/actions";
 
 defineOptions({
   name: "BlockLayer",
@@ -127,7 +127,7 @@ const BlockFeauresManager = {
                 positiveText: "Yes",
                 negativeText: "No",
                 onPositiveClick: () => {
-                  blockLayer.value?.removeFeature(rowData.properties.index);
+                  UndoRedoManager.execute(new RemoveFeatureAction(blockLayer.value!, rowData));
                 },
               });
             }}

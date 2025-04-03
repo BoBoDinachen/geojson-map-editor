@@ -12,6 +12,8 @@ export class RemoveFeatureAction implements EditAction {
       this.layer.removeFeatureById(this.feature.id);
     } else if (this.layer instanceof BlockLayer) {
       this.layer.removeFeatureById(this.feature.id);
+    } else if (this.layer instanceof GroundLayer) {
+      this.layer.removeFeatureById(this.feature.id);
     }
     console.log("remove feature: ", toRaw(this.feature));
   }
@@ -19,6 +21,8 @@ export class RemoveFeatureAction implements EditAction {
     if (this.layer instanceof WallsLayer) {
       this.layer.addFeature(this.feature);
     } else if (this.layer instanceof BlockLayer) {
+      this.layer.addFeature(this.feature);
+    } else if (this.layer instanceof GroundLayer) {
       this.layer.addFeature(this.feature);
     }
   }

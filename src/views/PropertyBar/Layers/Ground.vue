@@ -4,9 +4,9 @@ import { groundLayer } from "@/stores/LayersStore";
 import { NButton, NColorPicker, NSpace } from "naive-ui";
 import { TableColumn } from "naive-ui/es/data-table/src/interface";
 import { reactive, ref } from "vue";
-import { StorageHandler } from "@/storage-handler/index";
-import CountdownButton from "@/views/components/CountdownButton.vue";
 import { Delete } from "@vicons/carbon";
+import UndoRedoManager from "@/core/manager/UndoRedoManager";
+import { RemoveFeatureAction } from "@/core/actions/index";
 
 defineOptions({
   name: "GroundLayer",
@@ -108,7 +108,9 @@ const GroundFeauresManager = {
                 positiveText: "Yes",
                 negativeText: "No",
                 onPositiveClick: () => {
-                  groundLayer.value?.removeFeature(rowData.properties.index);
+                  UndoRedoManager.execute(
+                    new RemoveFeatureAction(groundLayer.value!, rowData)
+                  );
                 },
               });
             }}

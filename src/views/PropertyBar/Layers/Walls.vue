@@ -4,6 +4,8 @@ import { groundLayer, wallsLayer } from "@/stores/LayersStore";
 import { NInputNumber, NColorPicker, NSpace, NButton } from "naive-ui";
 import { TableColumn } from "naive-ui/es/data-table/src/interface";
 import { Delete } from "@vicons/carbon";
+import { RemoveFeatureAction } from "@/core/actions";
+import UndoRedoManager from "@/core/manager/UndoRedoManager";
 
 defineOptions({
   name: "WallsLayer",
@@ -121,7 +123,9 @@ const WallFeauresManager = {
                 positiveText: "Yes",
                 negativeText: "No",
                 onPositiveClick: () => {
-                  wallsLayer.value?.removeFeature(rowData.properties.index);
+                  UndoRedoManager.execute(
+                    new RemoveFeatureAction(wallsLayer.value!, rowData)
+                  );
                 },
               });
             }}

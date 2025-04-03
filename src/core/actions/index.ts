@@ -1,3 +1,4 @@
 import { AddFeatureAction } from "./addFeatureAction";
+import { RemoveFeatureAction } from "./removeFeatureAction";
 
-export { AddFeatureAction };
+export { AddFeatureAction, RemoveFeatureAction };
