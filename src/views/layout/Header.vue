@@ -9,6 +9,7 @@ import { UploadFileInfo, UploadInst } from "naive-ui";
 import { wallsLayer, groundLayer, blockLayer } from "@/stores/LayersStore";
 import editor from "@/core/Editor";
 import { LngLatBoundsLike } from "mapbox-gl";
+import UndoRedoManager from "@/core/manager/UndoRedoManager";
 
 const showSettingsModal = ref(false);
 const showExportModal = ref(false);
@@ -37,6 +38,20 @@ const handleImport = (uploadFile: UploadFileInfo) => {
   reader.readAsText(blob);
 };
 
+const handleUndo = () => {
+  if (!UndoRedoManager.canUndo()) {
+    return window.$message.info("No more undo");
+  }
+  UndoRedoManager.undo();
+};
+
+const handleRedo = () => {
+  if (!UndoRedoManager.canRedo()) {
+    return window.$message.info("No more redo");
+  }
+  UndoRedoManager.redo();
+};
+
 defineOptions({
   name: "Header",
 });
@@ -55,8 +70,28 @@ defineOptions({
         </NSpace> -->
         <NDivider vertical></NDivider>
         <NSpace align="end">
-          <NButton secondary strong :render-icon="() => h(Undo)"></NButton>
-          <NButton secondary strong :render-icon="() => h(Redo)"></NButton>
+          <n-tooltip :show-arrow="false" trigger="hover">
+            <template #trigger>
+              <NButton
+                secondary
+                strong
+                :render-icon="() => h(Undo)"
+                @click="handleUndo"
+              ></NButton>
+            </template>
+            Ctrl + Z
+          </n-tooltip>
+          <n-tooltip :show-arrow="false" trigger="hover">
+            <template #trigger>
+              <NButton
+                secondary
+                strong
+                :render-icon="() => h(Redo)"
+                @click="handleRedo"
+              ></NButton>
+            </template>
+            Ctrl + Shift + Z
+          </n-tooltip>
         </NSpace>
       </div>
       <div class="right">

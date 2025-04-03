@@ -4,6 +4,7 @@ import { DrawingManager } from "./manager/DrawManager";
 import * as THREE from "three";
 import { MapOptions } from "mapbox-gl";
 import { StorageHandler } from "@/storage-handler";
+import UndoRedoManager from "./manager/UndoRedoManager";
 
 interface Options {}
 
@@ -71,6 +72,7 @@ class Editor {
   public destory() {
     this._mapRenderer?.destory();
     this.renderer?.dispose();
+    UndoRedoManager.dispose();
   }
 
   private initThreeRenderer(map: mapboxgl.Map) {

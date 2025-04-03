@@ -53,8 +53,7 @@ export class BlockLayer extends CustomLayer {
         index: this._features.value.length + 1,
         type: FeatureType.Block,
       } as FeatureProperties;
-      this._features.value.push(feature);
-      this._updateSourceData(this._features.value);
+      this.addFeature(feature);
     };
 
     const stopDraw = this._drawManager.drawPlane(onCreate, stopCb, {
@@ -65,12 +64,25 @@ export class BlockLayer extends CustomLayer {
     return stopDraw;
   }
 
+  public getFeatureById(featureId: number) {
+    return this._features.value.find((f) => f.id === featureId);
+  }
+
   public getFeatures() {
     return this._features.value;
   }
 
   public getFeatureProperties() {
     return this._feaureProperties.value;
+  }
+
+  public addFeature(feature: Feature) {
+    this._features.value.push(feature);
+    this._features.value.forEach((feature, index) => {
+      feature.properties!.index = index + 1;
+      feature.id = index + 1;
+    });
+    this._updateSourceData(this._features.value);
   }
 
   public removeFeature(featureIndex: number) {
@@ -264,6 +276,7 @@ export class BlockLayer extends CustomLayer {
         pos: e.point,
         data: {
           type: FeatureType.Block,
+          feature: this.getFeatureById(this._hoveredFeatureId),
           featureId: this._hoveredFeatureId,
         },
       });

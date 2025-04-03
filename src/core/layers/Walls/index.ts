@@ -10,6 +10,9 @@ import { groundLayer, blockLayer } from "@/stores/LayersStore";
 import { generatePolygonFromPolyline } from "@/utils/geometry";
 import { eventbus } from "@/utils/eventbus";
 import { EventTypeEnum } from "@/core/enum/Event";
+import UndoRedoManager from "@/core/manager/UndoRedoManager";
+import { AddFeatureAction } from "@/core/actions";
+import { feature } from "@turf/turf";
 
 export class WallsLayer extends CustomLayer {
   id: string = "walls-layer";
@@ -51,7 +54,6 @@ export class WallsLayer extends CustomLayer {
     stopCb: () => void
   ) {
     const onCreate = (lineFeature: Feature) => {
-      console.log(lineFeature);
       const { polygon } = generatePolygonFromPolyline(
         //@ts-ignore
         lineFeature.geometry.coordinates,
@@ -73,9 +75,7 @@ export class WallsLayer extends CustomLayer {
           width: options.width,
         } as FeatureProperties,
       } as Feature;
-      console.log("generatePolygonFromPolyline:", polygonFeature);
-      this._features.value.push(polygonFeature);
-      this._updateSourceData(this._features.value);
+      UndoRedoManager.execute(new AddFeatureAction(this, polygonFeature));
     };
     const snapBounds = [];
     this.getFeatures().forEach((feature) => {
@@ -100,12 +100,25 @@ export class WallsLayer extends CustomLayer {
     return stopDraw;
   }
 
+  public getFeatureById(featureId: number) {
+    return this._features.value.find((f) => f.id === featureId);
+  }
+
   public getFeatures() {
     return this._features.value;
   }
 
   public getFeatureProperties() {
     return this._feaureProperties.value;
+  }
+
+  public addFeature(feature: Feature) {
+    this._features.value.push(feature);
+    this._features.value.forEach((feature, index) => {
+      feature.properties!.index = index + 1;
+      feature.id = index + 1;
+    });
+    this._updateSourceData(this._features.value);
   }
 
   public removeFeature(featureIndex: number) {
@@ -321,6 +334,7 @@ export class WallsLayer extends CustomLayer {
         pos: e.point,
         data: {
           type: FeatureType.Wall,
+          feature: this.getFeatureById(this._hoveredFeatureId),
           featureId: this._hoveredFeatureId,
         },
       });

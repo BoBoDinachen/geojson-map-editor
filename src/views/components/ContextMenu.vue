@@ -11,8 +11,10 @@
 </template>
 
 <script setup lang="ts">
+import { RemoveFeatureAction } from "@/core/actions/removeFeatureAction";
 import { EventTypeEnum } from "@/core/enum/Event";
 import { FeatureType } from "@/core/enum/Layer";
+import UndoRedoManager from "@/core/manager/UndoRedoManager";
 import { blockLayer, wallsLayer } from "@/stores/LayersStore";
 import { eventbus } from "@/utils/eventbus";
 import { ref, onMounted, onUnmounted, useTemplateRef } from "vue";
@@ -58,10 +60,16 @@ const showMenu = (pos: any, data: any) => {
       action: () => {
         switch (data.type) {
           case FeatureType.Block:
-            blockLayer.value?.removeFeatureById(data.featureId);
+            UndoRedoManager.execute(
+              new RemoveFeatureAction(blockLayer.value!, data.feature)
+            );
+            // blockLayer.value?.removeFeatureById(data.featureId);
             break;
           case FeatureType.Wall:
-            wallsLayer.value?.removeFeatureById(data.featureId);
+            UndoRedoManager.execute(
+              new RemoveFeatureAction(wallsLayer.value!, data.feature)
+            );
+            // wallsLayer.value?.removeFeatureById(data.featureId);
             break;
           default:
             break;
