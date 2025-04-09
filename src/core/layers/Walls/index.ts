@@ -24,7 +24,7 @@ export class WallsLayer extends CustomLayer {
   private _opacity = ref(1);
   private _wallsVisible = ref(true);
   private _feaureProperties = ref<FeatureProperties>({
-    height: 8,
+    height: 3.2,
     base_height: 0,
     color: "#606060",
   });

@@ -40,7 +40,7 @@ export type CustomMapOptions = {
 
 export class MapRnderer {
   private _options = {
-    maxZoom: 30,
+    maxZoom: 24,
     // mapbox://styles/mapbox/dark-v11
     style: {
       version: 8,

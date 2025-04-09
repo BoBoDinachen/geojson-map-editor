@@ -155,8 +155,8 @@ export class BackgroundLayer extends CustomLayer {
     });
     const mesh = new THREE.Mesh(geometry, material);
     mesh.frustumCulled = false;
-    mesh.position.x = -1;
-    mesh.position.y = -1;
+    mesh.position.x = 0;
+    mesh.position.y = 0;
     mesh.position.z = 0;
     return mesh;
   }

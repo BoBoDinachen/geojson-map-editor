@@ -13,7 +13,7 @@ export default defineConfig({
     strictPort: true,
     port: 5173,
   },
-  base:"./",
+  base: "./",
   // 添加有关当前构建目标的额外前缀，使这些 CLI 设置的 Tauri 环境变量可以在客户端代码中访问
   envPrefix: ["VITE_", "TAURI_ENV_*"],
   build: {
@@ -24,17 +24,9 @@ export default defineConfig({
     minify: !process.env.TAURI_ENV_DEBUG ? "esbuild" : false,
     // 在 debug 构建中生成 sourcemap
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-        pure_funcs: ["console.log"],
-      },
-      format: {
-        /** 删除注释 */
-        comments: true,
-      },
-    },
+  },
+  esbuild: {
+    drop: process.env.TAURI_ENV_DEBUG ? [] : ["console", "debugger"],
   },
   resolve: {
     alias: {

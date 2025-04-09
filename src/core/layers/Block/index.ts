@@ -21,7 +21,7 @@ export class BlockLayer extends CustomLayer {
   private _features = ref<Array<Feature>>([]);
   private _blocksVisible = ref(true);
   private _feaureProperties = ref<FeatureProperties>({
-    height: 5,
+    height: 3,
     base_height: 0,
     color: "#606060",
   });
