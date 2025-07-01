@@ -12,7 +12,6 @@ import { eventbus } from "@/utils/eventbus";
 import { EventTypeEnum } from "@/core/enum/Event";
 import UndoRedoManager from "@/core/manager/UndoRedoManager";
 import { AddFeatureAction } from "@/core/actions";
-import { feature } from "@turf/turf";
 
 export class WallsLayer extends CustomLayer {
   id: string = "walls-layer";

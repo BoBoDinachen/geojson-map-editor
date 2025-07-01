@@ -128,7 +128,6 @@ export class MapRnderer {
       await this._initCustomLayers();
 
       DrawingManager.getInstance<DrawingManager>().init(this._map);
-      this.initThreeRenderer(this._map);
       this._initMapBounds();
       this._setupGeocoder(this._options.geocoderContainer);
 
@@ -205,32 +204,6 @@ export class MapRnderer {
 
   public getOptions() {
     return this._options;
-  }
-
-  private initThreeRenderer(map: mapboxgl.Map) {
-    const canvas = map.getCanvas();
-
-    const h = canvas.clientHeight;
-    const w = canvas.clientWidth;
-    editor.camera = new THREE.PerspectiveCamera(
-      map.transform.fov,
-      w / h,
-      0.1,
-      1e21
-    );
-
-    // use the Mapbox GL JS map canvas for three.js
-    editor.renderer = new THREE.WebGLRenderer({
-      canvas,
-      context: canvas.getContext("webgl2")!,
-      antialias: true,
-    });
-    editor.renderer.setPixelRatio(window.devicePixelRatio);
-    editor.renderer.setSize(
-      map.getCanvas().clientWidth,
-      map.getCanvas().clientHeight
-    );
-    editor.renderer.autoClear = false;
   }
 
   private _setupGeocoder(container: string) {

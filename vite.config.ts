@@ -12,6 +12,7 @@ export default defineConfig({
     // Tauri 工作于固定端口，如果端口不可用则报错
     strictPort: true,
     port: 5173,
+    host: "0.0.0.0",
   },
   base: "./",
   // 添加有关当前构建目标的额外前缀，使这些 CLI 设置的 Tauri 环境变量可以在客户端代码中访问
