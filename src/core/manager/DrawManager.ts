@@ -1,5 +1,5 @@
-import { Singleton } from "@/utils/Singleton";
-import MapboxDraw from "@mapbox/mapbox-gl-draw";
+import { Singleton } from '@/utils/Singleton'
+import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import {
   DrawRectangleMode,
   CircleMode,
@@ -8,7 +8,8 @@ import {
   DrawModeEnum,
   SnapLineMode,
   MeasureLineMode,
-} from "../draw_modes/index";
+} from '../draw_modes/index'
+import { SRMode, SRStyle } from '../draw_modes/ScaleRotateMode'
 
 /**
  * 1.管理绘制状态，移动、选择、绘制等
@@ -16,17 +17,18 @@ import {
  * 3. 处理绘制的要素数据、保存撤销、回退命令等
  */
 export class DrawingManager extends Singleton {
-  private _map: mapboxgl.Map | null = null;
-  private _draw: MapboxDraw | null = null;
-  private _events: Array<(e: any) => void> = [];
-  private _waitList: Map<(e: any) => void, number> = new Map();
+  private _map: mapboxgl.Map | null = null
+  private _draw: MapboxDraw | null = null
+  private _events: Array<(e: any) => void> = []
+  private _waitList: Map<(e: any) => void, number> = new Map()
   protected constructor() {
-    super();
+    super()
   }
 
   public async init(map: mapboxgl.Map) {
-    this._map = map;
+    this._map = map
     this._draw = new MapboxDraw({
+      styles: SRStyle,
       modes: {
         ...MapboxDraw.modes,
         [DrawModeEnum.RECTANGLE_MODE]: DrawRectangleMode,
@@ -35,10 +37,11 @@ export class DrawingManager extends Singleton {
         [DrawModeEnum.POLYGON_MODE]: DrawPolygonMode,
         [DrawModeEnum.SNAP_LINE_MODE]: SnapLineMode,
         [DrawModeEnum.MEASURE_LINE_MODE]: MeasureLineMode,
+        [DrawModeEnum.SCALE_ROTATE_MODE]: SRMode,
       },
       displayControlsDefault: false,
-    });
-    this._map.addControl(this._draw, "top-right");
+    })
+    this._map.addControl(this._draw, 'top-right')
   }
 
   public drawPlane(
@@ -52,31 +55,32 @@ export class DrawingManager extends Singleton {
         drawMode: DrawModeEnum.RECTANGLE_MODE,
       } as DrawCore.DrawPlaneOptions,
       options
-    );
-    this._draw?.changeMode(options.drawMode!);
+    )
+    this._draw?.changeMode(options.drawMode!)
     const event = (e) => {
-      cb(e.features[0]);
-      options.deleteAll && this._draw?.deleteAll();
-      this._stopDraw(event);
-      stopCb();
-    };
-    this._addEvent(event);
-    this._map?.once("draw.create", event);
+      const feature = e.features[0]
+      cb(e.features[0])
+      options.deleteAll && this._draw?.deleteAll()
+      this._stopDraw(event)
+      stopCb()
+    }
+    this._addEvent(event)
+    this._map?.once('draw.create', event)
     // 长时间未绘制，自动停止绘制
     if (options.duration) {
       const timeout = setTimeout(() => {
-        options.deleteAll && this._draw?.deleteAll();
-        this._stopDraw(event);
-        stopCb();
-        console.log("长时间未绘制，自动停止绘制", options);
-      }, options.duration);
-      this._waitList.set(event, timeout);
+        options.deleteAll && this._draw?.deleteAll()
+        this._stopDraw(event)
+        stopCb()
+        console.log('长时间未绘制，自动停止绘制', options)
+      }, options.duration)
+      this._waitList.set(event, timeout)
     }
     return () => {
-      options.deleteAll && this._draw?.deleteAll();
-      this._stopDraw(event);
-      stopCb();
-    };
+      options.deleteAll && this._draw?.deleteAll()
+      this._stopDraw(event)
+      stopCb()
+    }
   }
 
   public drawPoint(
@@ -87,31 +91,31 @@ export class DrawingManager extends Singleton {
     options = Object.assign(
       { duration: 20000, deleteAll: false } as DrawCore.DrawPointOptions,
       options
-    );
-    this._draw?.changeMode(DrawModeEnum.POINT_MODE);
+    )
+    this._draw?.changeMode(DrawModeEnum.POINT_MODE)
     const event = (e) => {
-      cb(e.features[0]);
-      options.deleteAll && this._draw?.deleteAll();
-      this._stopDraw(event);
-      stopCb();
-    };
-    this._addEvent(event);
-    this._map?.once("draw.create", event);
+      cb(e.features[0])
+      options.deleteAll && this._draw?.deleteAll()
+      this._stopDraw(event)
+      stopCb()
+    }
+    this._addEvent(event)
+    this._map?.once('draw.create', event)
     // 长时间未绘制，自动停止绘制
     if (options.duration) {
       const timeout = setTimeout(() => {
-        options.deleteAll && this._draw?.deleteAll();
-        this._stopDraw(event);
-        stopCb();
-        console.log("长时间未绘制，自动停止绘制", options);
-      }, options.duration);
-      this._waitList.set(event, timeout);
+        options.deleteAll && this._draw?.deleteAll()
+        this._stopDraw(event)
+        stopCb()
+        console.log('长时间未绘制，自动停止绘制', options)
+      }, options.duration)
+      this._waitList.set(event, timeout)
     }
     return () => {
-      options.deleteAll && this._draw?.deleteAll();
-      this._stopDraw(event);
-      stopCb();
-    };
+      options.deleteAll && this._draw?.deleteAll()
+      this._stopDraw(event)
+      stopCb()
+    }
   }
 
   public drawSnapLine(
@@ -125,38 +129,38 @@ export class DrawingManager extends Singleton {
         enableSnap: true,
       } as DrawCore.DrawSnapLineOptions,
       options
-    );
+    )
     if (options.enableSnap) {
       this._draw?.changeMode(DrawModeEnum.SNAP_LINE_MODE, {
         snapThreshold: options.snapThreshold,
         bounds: options.bounds,
-      });
+      })
     } else {
-      this._draw?.changeMode("draw_line_string");
+      this._draw?.changeMode('draw_line_string')
     }
     const event = (e) => {
-      cb(e.features[0]);
-      options.deleteAll && this._draw?.deleteAll();
-      this._stopDraw(event);
-      stopCb();
-    };
-    this._addEvent(event);
-    this._map?.once("draw.create", event);
+      cb(e.features[0])
+      options.deleteAll && this._draw?.deleteAll()
+      this._stopDraw(event)
+      stopCb()
+    }
+    this._addEvent(event)
+    this._map?.once('draw.create', event)
     // 长时间未绘制，自动停止绘制
     if (options.duration) {
       const timeout = setTimeout(() => {
-        options.deleteAll && this._draw?.deleteAll();
-        this._stopDraw(event);
-        stopCb();
-        console.log("长时间未绘制，自动停止绘制", options);
-      }, options.duration);
-      this._waitList.set(event, timeout);
+        options.deleteAll && this._draw?.deleteAll()
+        this._stopDraw(event)
+        stopCb()
+        console.log('长时间未绘制，自动停止绘制', options)
+      }, options.duration)
+      this._waitList.set(event, timeout)
     }
     return () => {
-      options.deleteAll && this._draw?.deleteAll();
-      this._stopDraw(event);
-      stopCb();
-    };
+      options.deleteAll && this._draw?.deleteAll()
+      this._stopDraw(event)
+      stopCb()
+    }
   }
 
   public drawMeasureLine(
@@ -169,72 +173,72 @@ export class DrawingManager extends Singleton {
         deleteAll: false,
       } as DrawCore.DrawMeasureLineOptions,
       options
-    );
+    )
 
-    this._draw?.changeMode(DrawModeEnum.MEASURE_LINE_MODE);
+    this._draw?.changeMode(DrawModeEnum.MEASURE_LINE_MODE)
     const event = (e) => {
-      cb(e.features[0]);
-      options.deleteAll && this._draw?.deleteAll();
-      this._stopDraw(event);
-      stopCb();
-    };
-    this._addEvent(event);
-    this._map?.once("draw.create", event);
+      cb(e.features[0])
+      options.deleteAll && this._draw?.deleteAll()
+      this._stopDraw(event)
+      stopCb()
+    }
+    this._addEvent(event)
+    this._map?.once('draw.create', event)
     // 长时间未绘制，自动停止绘制
     if (options.duration) {
       const timeout = setTimeout(() => {
-        options.deleteAll && this._draw?.deleteAll();
-        this._stopDraw(event);
-        stopCb();
-        console.log("长时间未绘制，自动停止绘制", options);
-      }, options.duration);
-      this._waitList.set(event, timeout);
+        options.deleteAll && this._draw?.deleteAll()
+        this._stopDraw(event)
+        stopCb()
+        console.log('长时间未绘制，自动停止绘制', options)
+      }, options.duration)
+      this._waitList.set(event, timeout)
     }
     return () => {
-      options.deleteAll && this._draw?.deleteAll();
-      this._stopDraw(event);
-      stopCb();
-    };
+      options.deleteAll && this._draw?.deleteAll()
+      this._stopDraw(event)
+      stopCb()
+    }
   }
 
   private _stopDraw(event: (e: any) => void) {
-    this._draw?.trash();
-    this._offDrawEvent(event);
-    const timeout = this._waitList.get(event);
+    this._draw?.trash()
+    this._offDrawEvent(event)
+    const timeout = this._waitList.get(event)
     if (timeout) {
-      clearTimeout(timeout);
-      this._waitList.delete(event);
+      clearTimeout(timeout)
+      this._waitList.delete(event)
     }
   }
 
   public getDraw() {
-    return this._draw;
+    return this._draw
   }
 
   private _addEvent(event: (e: any) => void) {
-    const eventIndex = this._events.findIndex((e) => e === event);
+    const eventIndex = this._events.findIndex((e) => e === event)
     if (eventIndex === -1) {
-      this._events.push(event);
+      this._events.push(event)
     }
   }
 
   private _offDrawEvent(event: (e: any) => void) {
-    this._map?.off("draw.create", event);
-    const eventIndex = this._events.findIndex((e) => e === event);
+    this._map?.off('draw.create', event)
+    const eventIndex = this._events.findIndex((e) => e === event)
     if (eventIndex !== -1) {
-      this._events.splice(eventIndex, 1);
+      this._events.splice(eventIndex, 1)
     }
   }
 
   private _offAllDrawEvent() {
     this._events.forEach((event) => {
-      this._map?.off("draw.create", event);
-    });
-    this._events = [];
+      this._map?.off('draw.create', event)
+    })
+    this._events = []
   }
 
   public destory() {
-    this._draw?.trash();
-    this._offAllDrawEvent();
+    this._draw?.trash()
+    this._offAllDrawEvent()
   }
 }

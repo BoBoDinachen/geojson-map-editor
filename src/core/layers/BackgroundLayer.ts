@@ -1,58 +1,134 @@
-import * as mapbox from "mapbox-gl";
-import { LayerGroup } from "../enum/Layer";
-import { CustomLayer } from "./CustomLayer";
-import * as THREE from "three";
-import editor from "../Editor";
-import { useStorageRef, StorageKey } from "@/storage-handler";
+import * as mapbox from 'mapbox-gl'
+import { LayerGroup } from '../enum/Layer'
+import { CustomLayer } from './CustomLayer'
+import * as THREE from 'three'
+import editor from '../Editor'
+import { useStorageRef, StorageKey } from '@/storage-handler'
+import { DrawModeEnum } from '../draw_modes'
+import { ref } from 'vue'
 
 export class BackgroundLayer extends CustomLayer {
-  public groupId: number = LayerGroup.Background;
-  private _gridObject: THREE.Mesh | null = null;
-  private _showGrid = useStorageRef(StorageKey.ShowGridBackground, true);
-  private _showBaseMap = useStorageRef(StorageKey.ShowBaseMap, true);
+  public groupId: number = LayerGroup.Background
+  private _gridObject: THREE.Mesh | null = null
+  private _showGrid = useStorageRef(StorageKey.ShowGridBackground, true)
+  private _showBaseMap = useStorageRef(StorageKey.ShowBaseMap, true)
+  private _enableMoveMapImage = ref(false)
   public onAdd(map: mapbox.Map) {
-    this._map = map;
-    const gridMesh = this._buildInfiniteGrid(
-      undefined,
-      undefined,
-      0x9e9e9e,
-      10000
-    );
-    this._gridObject = gridMesh;
-    editor.world.add(gridMesh);
-    this.changeShowBaseMap(this._showBaseMap.value);
-    this.changeShowGrid(this._showGrid.value);
-    console.log("background layer add");
+    this._map = map
+    const gridMesh = this._buildInfiniteGrid(undefined, undefined, 0x9e9e9e, 10000)
+    this._gridObject = gridMesh
+    editor.world.add(gridMesh)
+    this.changeShowBaseMap(this._showBaseMap.value)
+    this.changeShowGrid(this._showGrid.value)
+    console.log('background layer add')
   }
   public onRemove() {
     if (this._gridObject) {
-      editor.world.remove(this._gridObject);
+      editor.world.remove(this._gridObject)
     }
   }
 
   public changeShowBaseMap(visible: boolean) {
-    this._showBaseMap.value = visible;
-    const layers = this._map?.getStyle()?.layers;
+    this._showBaseMap.value = visible
+    const layers = this._map?.getStyle()?.layers
     layers?.forEach((layer) => {
-      if (layer.source === "composite") {
+      if (layer.source === 'composite') {
         this._map?.setLayoutProperty(
           layer.id,
-          "visibility",
-          this._showBaseMap.value ? "visible" : "none"
-        );
+          'visibility',
+          this._showBaseMap.value ? 'visible' : 'none'
+        )
       }
-    });
-    console.log("map style:", this._map?.getStyle());
+    })
+    console.log('map style:', this._map?.getStyle())
+  }
+
+  public getMapImageSource() {
+    return this._map.getSource<mapbox.ImageSource>('map-image')
+  }
+
+  public addMapImageLayer(
+    url: string,
+    bounds: [[number, number], [number, number], [number, number], [number, number]]
+  ) {
+    this.removeMapImageLayer()
+    this._map?.addSource('map-image', {
+      type: 'image',
+      coordinates: bounds,
+      url,
+    })
+    this._map?.addLayer(
+      {
+        id: 'map-image-layer',
+        type: 'raster',
+        source: 'map-image',
+      },
+      'ground-fill'
+    )
+    console.log(this._map?.getStyle())
+    this._map?.fitBounds([bounds[0], bounds[2]], { padding: 50, duration: 500 })
+  }
+
+  public removeMapImageLayer() {
+    if (this._map?.getLayer('map-image-layer')) {
+      this._map?.removeLayer('map-image-layer')
+      this._map?.removeSource('map-image')
+    }
+  }
+
+  public enableMoveMapImage() {
+    const imageSource = this.getMapImageSource()
+    const coordinates = Array.from(imageSource?.coordinates ?? [])
+    const drawInstance = editor.getDrawInstance()
+    const feature: any = {
+      id: 'map-image',
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'Polygon',
+        coordinates: [[...coordinates, coordinates[0]]],
+      },
+    }
+    drawInstance?.add(feature)
+    drawInstance?.changeMode(DrawModeEnum.SCALE_ROTATE_MODE, {
+      featureId: 'map-image',
+    })
+    this.addMapEventListener('enableMoveMapImage', {
+      type: 'draw.update',
+      mode: 'on',
+      handler: (e) => {
+        const feature = e.features[0]
+        const coordinates = feature.geometry.coordinates[0] as Array<[number, number]>
+        imageSource?.setCoordinates([
+          coordinates[0],
+          coordinates[1],
+          coordinates[2],
+          coordinates[3],
+        ])
+      },
+    })
+    this._enableMoveMapImage.value = true
+  }
+
+  public disableMoveMapImage() {
+    const drawInstance = editor.getDrawInstance()
+    drawInstance?.deleteAll()
+    drawInstance?.trash()
+    this._enableMoveMapImage.value = false
   }
 
   public get showGrid() {
-    return this._showGrid.value;
+    return this._showGrid.value
+  }
+
+  public get isEnableMoveMapImage() {
+    return this._enableMoveMapImage.value
   }
 
   public changeShowGrid(value: boolean) {
-    this._showGrid.value = value;
+    this._showGrid.value = value
     if (this._gridObject) {
-      this._gridObject.visible = value;
+      this._gridObject.visible = value
     }
   }
 
@@ -61,12 +137,12 @@ export class BackgroundLayer extends CustomLayer {
     size2 = 10,
     color: THREE.Color | number = 0x444444,
     distance = 8000,
-    axes = "xzy"
+    axes = 'xzy'
   ) {
-    color = new THREE.Color(color);
+    color = new THREE.Color(color)
 
-    const planeAxes = axes.substring(0, 2);
-    const geometry = new THREE.PlaneGeometry(2, 2, 1, 1);
+    const planeAxes = axes.substring(0, 2)
+    const geometry = new THREE.PlaneGeometry(2, 2, 1, 1)
 
     const material = new THREE.ShaderMaterial({
       side: THREE.DoubleSide,
@@ -152,17 +228,17 @@ export class BackgroundLayer extends CustomLayer {
         //@ts-ignore
         derivatives: true,
       },
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.frustumCulled = false;
-    mesh.position.x = 0;
-    mesh.position.y = 0;
-    mesh.position.z = 0;
-    return mesh;
+    })
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.frustumCulled = false
+    mesh.position.x = 0
+    mesh.position.y = 0
+    mesh.position.z = 0
+    return mesh
   }
 
   public get showBaseMap() {
-    return this._showBaseMap.value;
+    return this._showBaseMap.value
   }
 
   public addFeature() {}

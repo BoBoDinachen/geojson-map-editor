@@ -21,4 +21,5 @@ export enum DrawModeEnum {
   "SNAP_LINE_MODE" = "draw_snap_line",
   "MEASURE_LINE_MODE" = "draw_measure_line",
   "POINT_MODE" = "draw_point",
+  SCALE_ROTATE_MODE = "scale_rotate_mode",
 }

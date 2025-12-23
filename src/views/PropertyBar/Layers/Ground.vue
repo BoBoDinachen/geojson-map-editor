@@ -1,16 +1,16 @@
 <script setup lang="tsx">
-import { DrawModeEnum } from "@/core/draw_modes";
-import { groundLayer } from "@/stores/LayersStore";
-import { NButton, NColorPicker, NSpace } from "naive-ui";
-import { TableColumn } from "naive-ui/es/data-table/src/interface";
-import { reactive, ref } from "vue";
-import { Delete } from "@vicons/carbon";
-import UndoRedoManager from "@/core/manager/UndoRedoManager";
-import { RemoveFeatureAction } from "@/core/actions/index";
+import { DrawModeEnum } from '@/core/draw_modes'
+import { groundLayer } from '@/stores/LayersStore'
+import { NButton, NColorPicker, NInputNumber, NSlider, NSpace } from 'naive-ui'
+import { TableColumn } from 'naive-ui/es/data-table/src/interface'
+import { reactive, ref } from 'vue'
+import { Delete } from '@vicons/carbon'
+import UndoRedoManager from '@/core/manager/UndoRedoManager'
+import { RemoveFeatureAction } from '@/core/actions/index'
 
 defineOptions({
-  name: "GroundLayer",
-});
+  name: 'GroundLayer',
+})
 
 const DrawGroundHook = {
   state: reactive({
@@ -19,43 +19,43 @@ const DrawGroundHook = {
     properties:
       groundLayer.value?.getFeatureProperties() ??
       ({
-        stroke: "#000000",
-        "stroke-width": 1,
-        "stroke-opacity": 1,
-        fill: "#64e2b7",
-        "fill-opacity": 1,
+        stroke: '#000000',
+        'stroke-width': 1,
+        'stroke-opacity': 1,
+        fill: '#64e2b7',
+        'fill-opacity': 1,
         height: 0.1,
         base_height: 0,
-        color: "#64e2b7",
+        color: '#64e2b7',
       } as FeatureProperties),
   }),
   stopDraw: null as any,
   startDraw() {
-    const self = DrawGroundHook;
-    self.state.drawing = true;
+    const self = DrawGroundHook
+    self.state.drawing = true
     self.stopDraw = groundLayer.value?.drawGround(self.state.drawMode, () => {
-      self.state.drawing = false;
-    });
+      self.state.drawing = false
+    })
   },
   cancelDraw() {
-    const self = DrawGroundHook;
-    self.stopDraw();
-    self.state.drawing = false;
+    const self = DrawGroundHook
+    self.stopDraw()
+    self.state.drawing = false
   },
-};
+}
 
 const GroundFeauresManager = {
   columns: [
     {
-      title: "Label",
-      key: "properties.index",
+      title: 'Label',
+      key: 'properties.index',
       render(rowData: any, rowIndex) {
-        return `Ground-${rowData.properties.index}`;
+        return `Ground-${rowData.properties.index}`
       },
     },
     {
-      title: "Fill Height(m)",
-      key: "properties.height",
+      title: 'Fill Height(m)',
+      key: 'properties.height',
       render(rowData: any, rowIndex) {
         return (
           <n-input-number
@@ -64,38 +64,32 @@ const GroundFeauresManager = {
             step={0.1}
             value={rowData.properties.height}
             onUpdateValue={(value: number) => {
-              GroundFeauresManager.onChangeFillHeight(
-                rowData.properties.index,
-                value
-              );
+              GroundFeauresManager.onChangeFillHeight(rowData.properties.index, value)
             }}
             size="small"
           />
-        );
+        )
       },
     },
     {
-      title: "Color",
-      key: "properties.color",
+      title: 'Color',
+      key: 'properties.color',
       render(rowData: any, rowIndex) {
         return (
           <NColorPicker
             show-alpha={false}
             value={rowData.properties.color}
             onUpdateValue={(value: string) => {
-              GroundFeauresManager.onChangeColor(
-                rowData.properties.index,
-                value
-              );
+              GroundFeauresManager.onChangeColor(rowData.properties.index, value)
             }}
           />
-        );
+        )
       },
     },
     {
-      title: "Action",
-      key: "action",
-      align: "center",
+      title: 'Action',
+      key: 'action',
+      align: 'center',
       render(rowData: any, rowIndex) {
         return (
           <n-button
@@ -103,47 +97,48 @@ const GroundFeauresManager = {
             style="font-size: 24px"
             onClick={() => {
               window.$dialog.warning({
-                title: "Delete Wall",
-                content: "Are you sure you want to delete this wall?",
-                positiveText: "Yes",
-                negativeText: "No",
+                title: 'Delete Wall',
+                content: 'Are you sure you want to delete this wall?',
+                positiveText: 'Yes',
+                negativeText: 'No',
                 onPositiveClick: () => {
-                  UndoRedoManager.execute(
-                    new RemoveFeatureAction(groundLayer.value!, rowData)
-                  );
+                  UndoRedoManager.execute(new RemoveFeatureAction(groundLayer.value!, rowData))
                 },
-              });
+              })
             }}
           >
             <n-icon>
               <Delete />
             </n-icon>
           </n-button>
-        );
+        )
       },
     },
   ] as TableColumn[],
 
+  onChangeOpacity(index: number, opacity: number) {
+    groundLayer.value?.updateFeature(index, { opacity })
+  },
   onChangeColor(index: number, color: string) {
-    groundLayer.value?.updateFeature(index, { color });
+    groundLayer.value?.updateFeature(index, { color })
   },
 
   onChangeFillHeight(index: number, height: number) {
-    groundLayer.value?.updateFeature(index, { height });
+    groundLayer.value?.updateFeature(index, { height })
   },
 
   removeAllGround() {
     window.$dialog.warning({
-      title: "Delete All grounds",
-      content: "Are you sure you want to delete all grounds?",
-      positiveText: "Yes",
-      negativeText: "No",
+      title: 'Delete All grounds',
+      content: 'Are you sure you want to delete all grounds?',
+      positiveText: 'Yes',
+      negativeText: 'No',
       onPositiveClick: () => {
-        groundLayer.value?.removeAllFeatures();
+        groundLayer.value?.removeAllFeatures()
       },
-    });
+    })
   },
-};
+}
 </script>
 <template>
   <div class="ground-layer-container">
@@ -156,10 +151,7 @@ const GroundFeauresManager = {
         </n-radio-group>
       </NFormItem>
       <NFormItem label="Fill Color:" label-placement="left">
-        <NColorPicker
-          v-model:value="DrawGroundHook.state.properties.color"
-          :show-alpha="false"
-        />
+        <NColorPicker v-model:value="DrawGroundHook.state.properties.color" :show-alpha="false" />
       </NFormItem>
       <NSpace>
         <NButton
@@ -168,18 +160,14 @@ const GroundFeauresManager = {
           type="primary"
           >Start Draw</NButton
         >
-        <NButton
-          v-if="DrawGroundHook.state.drawing"
-          @click="DrawGroundHook.cancelDraw"
+        <NButton v-if="DrawGroundHook.state.drawing" @click="DrawGroundHook.cancelDraw"
           >Cancel</NButton
         >
       </NSpace>
     </NCard>
     <NCard title="Features" size="small">
       <template #header-extra>
-        <NButton size="small" @click="GroundFeauresManager.removeAllGround"
-          >Delete All</NButton
-        >
+        <NButton size="small" @click="GroundFeauresManager.removeAllGround">Delete All</NButton>
       </template>
       <NDataTable
         size="small"

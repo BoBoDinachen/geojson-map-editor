@@ -48,7 +48,9 @@ export class BlockLayer extends CustomLayer {
 
   drawBlock(drawMode: DrawModeEnum, stopCb: () => void) {
     const onCreate = (feature: Feature) => {
-      console.log(feature);
+      if (feature.geometry.type !== "Polygon") {
+        return;
+      }
       feature.id = this._features.value.length + 1;
       feature.properties = {
         ...this._feaureProperties.value,
