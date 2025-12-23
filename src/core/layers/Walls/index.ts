@@ -12,6 +12,7 @@ import { eventbus } from '@/utils/eventbus'
 import { EventTypeEnum } from '@/core/enum/Event'
 import UndoRedoManager from '@/core/manager/UndoRedoManager'
 import { AddFeatureAction } from '@/core/actions'
+import editor from '@/core/Editor'
 
 export class WallsLayer extends CustomLayer {
   id: string = 'walls-layer'
@@ -61,8 +62,9 @@ export class WallsLayer extends CustomLayer {
         lineFeature.geometry.coordinates,
         options.width
       )
+      const index = this._features.value.length + 1
       const polygonFeature: Feature = {
-        id: this._features.value.length + 1,
+        id: index,
         type: 'Feature',
         geometry: {
           type: 'Polygon',
@@ -70,28 +72,17 @@ export class WallsLayer extends CustomLayer {
         },
         properties: {
           ...this._feaureProperties.value,
-          index: this._features.value.length + 1,
+          index,
           type: FeatureType.Wall,
           //@ts-ignore
           lineString: lineFeature.geometry.coordinates,
           width: options.width,
+          name: `Wall-${index}`,
         } as FeatureProperties,
       } as Feature
       UndoRedoManager.execute(new AddFeatureAction(this, polygonFeature))
     }
-    const snapBounds: Array<number[][]> = []
-    this.getFeatures().forEach((feature) => {
-      //@ts-ignore
-      snapBounds.push(toRaw(feature.geometry.coordinates[0]))
-    })
-    groundLayer.value?.getFeatures().forEach((feature) => {
-      //@ts-ignore
-      snapBounds.push(toRaw(feature.geometry.coordinates[0]))
-    })
-    blockLayer.value?.getFeatures().forEach((feature) => {
-      //@ts-ignore
-      snapBounds.push(toRaw(feature.geometry.coordinates[0]))
-    })
+    const snapBounds = this._getSnapBounds()
     console.log('snapBounds:', snapBounds)
     // 过滤掉
     const stopDraw = this._drawManager.drawSnapLine(onCreate, stopCb, {
@@ -102,6 +93,55 @@ export class WallsLayer extends CustomLayer {
     })
 
     return stopDraw
+  }
+
+  enableEditWalls(featureId: number) {
+    const wallFeature = this.getFeatureById(featureId)!
+    const drawInstance = editor.getDrawInstance()
+    const lineFeature = {
+      id: 'line-string',
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: wallFeature.properties!.lineString,
+      },
+      properties: {},
+    }
+    //@ts-ignore
+    drawInstance?.add(lineFeature)
+    //@ts-ignore
+    drawInstance?.changeMode('direct_select', {
+      featureId: 'line-string',
+    })
+    this.addMapEventListener('enableEditWalls', {
+      type: 'draw.update',
+      mode: 'on',
+      handler: (e) => {
+        const feature = e.features[0]
+        const coordinates = feature.geometry.coordinates
+        const { polygon } = generatePolygonFromPolyline(coordinates, wallFeature.properties!.width)
+        this.updateFeature(featureId, {
+          lineString: coordinates,
+        })
+        this.updateFeatureCoordinates(featureId, polygon)
+      },
+    })
+  }
+
+  stopDraw() {
+    const drawInstance = editor.getDrawInstance()
+    drawInstance?.deleteAll()
+    drawInstance?.trash()
+    this.removeMapEventListener('enableEditWalls')
+  }
+
+  public updateFeatureCoordinates(featureIndex: number, coordinates: Array<number[]>) {
+    const index = this._features.value.findIndex((f) => f.properties?.index === featureIndex)
+    if (index > -1) {
+      //@ts-ignore
+      this._features.value[index].geometry.coordinates = [coordinates]
+      this._updateSourceData(this._features.value)
+    }
   }
 
   public getFeatureById(featureId: number) {
@@ -211,6 +251,23 @@ export class WallsLayer extends CustomLayer {
     getWallStyles().forEach((layer) => {
       this._map?.setLayoutProperty(layer.id, 'visibility', value ? 'visible' : 'none')
     })
+  }
+
+  private _getSnapBounds() {
+    const snapBounds: Array<number[][]> = []
+    this.getFeatures().forEach((feature) => {
+      //@ts-ignore
+      snapBounds.push(toRaw(feature.geometry.coordinates[0]))
+    })
+    groundLayer.value?.getFeatures().forEach((feature) => {
+      //@ts-ignore
+      snapBounds.push(toRaw(feature.geometry.coordinates[0]))
+    })
+    blockLayer.value?.getFeatures().forEach((feature) => {
+      //@ts-ignore
+      snapBounds.push(toRaw(feature.geometry.coordinates[0]))
+    })
+    return snapBounds
   }
 
   private _changeSelectedState = (featureId: number | string, isSelected: boolean) => {

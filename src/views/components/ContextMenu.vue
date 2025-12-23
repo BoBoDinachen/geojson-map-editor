@@ -1,121 +1,113 @@
 <template>
   <ul v-if="isVisible" class="context-menu" :style="menuStyle" ref="menuRef">
-    <li
-      v-for="(item, index) in menuItems"
-      :key="index"
-      @click="handleClick(item)"
-    >
+    <li v-for="(item, index) in menuItems" :key="index" @click="handleClick(item)">
       {{ item.label }}
     </li>
   </ul>
 </template>
 
 <script setup lang="ts">
-import { RemoveFeatureAction } from "@/core/actions/removeFeatureAction";
-import { EventTypeEnum } from "@/core/enum/Event";
-import { FeatureType } from "@/core/enum/Layer";
-import UndoRedoManager from "@/core/manager/UndoRedoManager";
-import { blockLayer, wallsLayer } from "@/stores/LayersStore";
-import { eventbus } from "@/utils/eventbus";
-import { ref, onMounted, onUnmounted, useTemplateRef } from "vue";
+import { RemoveFeatureAction } from '@/core/actions/removeFeatureAction'
+import { EventTypeEnum } from '@/core/enum/Event'
+import { FeatureType } from '@/core/enum/Layer'
+import UndoRedoManager from '@/core/manager/UndoRedoManager'
+import { blockLayer, wallsLayer } from '@/stores/LayersStore'
+import { eventbus } from '@/utils/eventbus'
+import { ref, onMounted, onUnmounted, useTemplateRef } from 'vue'
 
 type MenuItem = {
-  label: string;
-  action?: () => void;
-};
+  label: string
+  action?: () => void
+}
 
-const isVisible = ref(false);
-const menuStyle = ref({});
-const menuItems = ref<MenuItem[]>([]);
-const menuRef = useTemplateRef("menuRef");
+const isVisible = ref(false)
+const menuStyle = ref({})
+const menuItems = ref<MenuItem[]>([])
+const menuRef = useTemplateRef('menuRef')
 
 const showMenu = (pos: any, data: any) => {
-  const { x, y } = pos;
-  const menuWidth = 150; // 预设菜单宽度
-  const menuHeight = 100; // 预设菜单高度
+  const { x, y } = pos
+  const menuWidth = 150 // 预设菜单宽度
+  const menuHeight = 100 // 预设菜单高度
 
-  let posX = x;
-  let posY = y;
+  let posX = x
+  let posY = y
 
   // 限制菜单不超出右边界
   if (x + menuWidth > window.innerWidth) {
-    posX = window.innerWidth - menuWidth;
+    posX = window.innerWidth - menuWidth
   }
 
   // 限制菜单不超出下边界
   if (y + menuHeight > window.innerHeight) {
-    posY = window.innerHeight - menuHeight;
+    posY = window.innerHeight - menuHeight
   }
 
-  menuStyle.value = { top: `${posY}px`, left: `${posX}px` };
+  menuStyle.value = { top: `${posY}px`, left: `${posX}px` }
   menuItems.value = [
     {
-      label: "Edit",
+      label: 'Edit',
       action: () => {
-        window.$message.info("Not Supported");
+        eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: data.feature })
       },
     },
     {
-      label: "Remove",
+      label: 'Remove',
       action: () => {
         switch (data.type) {
           case FeatureType.Block:
-            UndoRedoManager.execute(
-              new RemoveFeatureAction(blockLayer.value!, data.feature)
-            );
+            UndoRedoManager.execute(new RemoveFeatureAction(blockLayer.value!, data.feature))
             // blockLayer.value?.removeFeatureById(data.featureId);
-            break;
+            break
           case FeatureType.Wall:
-            UndoRedoManager.execute(
-              new RemoveFeatureAction(wallsLayer.value!, data.feature)
-            );
+            UndoRedoManager.execute(new RemoveFeatureAction(wallsLayer.value!, data.feature))
             // wallsLayer.value?.removeFeatureById(data.featureId);
-            break;
+            break
           default:
-            break;
+            break
         }
-        eventbus.emit(EventTypeEnum.ClearLayerSelectedState);
+        eventbus.emit(EventTypeEnum.ClearLayerSelectedState)
       },
     },
     {
-      label: "Copy",
+      label: 'Copy',
       action: () => {
-        window.$message.info("Not Supported");
+        window.$message.info('Not Supported')
       },
     },
-  ];
-  isVisible.value = true;
-};
+  ]
+  isVisible.value = true
+}
 
 const hideMenu = () => {
-  isVisible.value = false;
-};
+  isVisible.value = false
+}
 
 // **点击菜单外部时隐藏菜单**
 const handleClickOutside = (event: any) => {
   if (menuRef.value && !menuRef.value.contains(event.target)) {
-    hideMenu();
+    hideMenu()
   }
-};
+}
 
 const handleClick = (item: MenuItem) => {
-  item.action?.();
-  hideMenu();
-};
+  item.action?.()
+  hideMenu()
+}
 
 // **挂载/卸载全局点击事件**
 onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
+  document.addEventListener('click', handleClickOutside)
   eventbus.addListener(EventTypeEnum.OpenContextMenu, (payload: any) => {
-    showMenu(payload.pos, payload.data);
-  });
-});
+    showMenu(payload.pos, payload.data)
+  })
+})
 onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-  eventbus.removeAllListener(EventTypeEnum.OpenContextMenu);
-});
+  document.removeEventListener('click', handleClickOutside)
+  eventbus.removeAllListener(EventTypeEnum.OpenContextMenu)
+})
 
-defineExpose({ showMenu });
+defineExpose({ showMenu })
 </script>
 
 <style lang="css" scoped>

@@ -1,88 +1,130 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
-import { FeatureType } from "@/core/enum/Layer";
-import { Utils } from "@/utils/index";
-import { blockLayer, wallsLayer } from "@/stores/LayersStore";
-import { eventbus } from "@/utils/eventbus";
-import { EventTypeEnum } from "@/core/enum/Event";
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { FeatureType } from '@/core/enum/Layer'
+import { blockLayer, groundLayer, wallsLayer } from '@/stores/LayersStore'
+import { eventbus } from '@/utils/eventbus'
+import { EventTypeEnum } from '@/core/enum/Event'
 
 defineOptions({
-  name: "FeaturePanel",
-});
+  name: 'FeaturePanel',
+})
 
 const props = defineProps<{
-  feature: any;
-}>();
+  feature: any
+}>()
 
-const formData = ref(props.feature?.properties);
+const formData = ref(props.feature?.properties)
+const enableEdit = ref(false)
 
 watch(
   () => props.feature,
-  (newVal) => {
-    formData.value = newVal?.properties;
+  (newVal, oldVal) => {
+    disableDrawFeature()
+    formData.value = newVal?.properties
   }
-);
+)
 
-const name = computed(() => {
-  return `${Utils.capitalizeFirstLetter(props.feature?.properties["type"])}-${
-    props.feature?.properties["index"]
-  }`;
-});
+const title = computed(() => {
+  return props.feature?.properties['name'] ?? 'Unknown'
+})
 
 const changeFeatureProps = (key: string, value: any) => {
-  const featureIndex = props.feature.properties["index"];
-  formData.value[key] = value;
-  switch (props.feature.properties["type"]) {
+  const featureIndex = props.feature.properties['index']
+  formData.value[key] = value
+  switch (props.feature.properties['type']) {
+    case FeatureType.Ground:
+      blockLayer.value?.updateFeature(featureIndex, {
+        [key]: value,
+      })
+      break
     case FeatureType.Block:
       blockLayer.value?.updateFeature(featureIndex, {
         [key]: value,
-      });
-      break;
+      })
+      break
     case FeatureType.Wall:
-      if (key === "width") {
-        wallsLayer.value?.updateWallWidth(featureIndex, value);
+      if (key === 'width') {
+        wallsLayer.value?.updateWallWidth(featureIndex, value)
       } else {
         wallsLayer.value?.updateFeature(featureIndex, {
           [key]: value,
-        });
+        })
       }
-      break;
+      break
     default:
-      break;
+      break
   }
-};
+}
+
+function enableDrawFeature() {
+  const featureType = props.feature.properties['type']
+  enableEdit.value = true
+  switch (featureType) {
+    case FeatureType.Ground:
+      groundLayer.value?.enableEditGround(props.feature.id)
+      break
+    case FeatureType.Block:
+      blockLayer.value?.enableEditBlock(props.feature.id)
+      break
+    case FeatureType.Wall:
+      wallsLayer.value?.enableEditWalls(props.feature.id)
+      break
+    default:
+      break
+  }
+}
+
+function disableDrawFeature() {
+  enableEdit.value = false
+  groundLayer.value?.stopDraw()
+  blockLayer.value?.stopDraw()
+  wallsLayer.value?.stopDraw()
+}
 
 const handleRemoveFeature = () => {
   window.$dialog.warning({
-    title: "Remove Feature",
-    content: "Are you sure you want to remove this feature?",
-    positiveText: "Yes",
-    negativeText: "No",
+    title: 'Remove Feature',
+    content: 'Are you sure you want to remove this feature?',
+    positiveText: 'Yes',
+    negativeText: 'No',
     onPositiveClick: () => {
-      switch (props.feature.properties["type"]) {
+      switch (props.feature.properties['type']) {
         case FeatureType.Block:
-          blockLayer.value?.removeFeatureById(props.feature.id);
-          break;
+          blockLayer.value?.removeFeatureById(props.feature.id)
+          break
         case FeatureType.Wall:
-          wallsLayer.value?.removeFeatureById(props.feature.id);
-          break;
+          wallsLayer.value?.removeFeatureById(props.feature.id)
+          break
         default:
-          break;
+          break
       }
-      eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: null });
+      eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: null })
     },
-  });
-};
+  })
+}
 
-onMounted(() => {});
+onMounted(() => {})
+onUnmounted(() => {
+  disableDrawFeature()
+})
 </script>
 <template>
   <div class="feature-container">
     <n-empty v-if="!feature" description="No Selected Feature"> </n-empty>
-    <NCard v-else :title="name" size="small">
+    <NCard v-else :title="title" size="small">
       <n-form-item label="Feature Type" label-placement="left">
-        <n-tag type="info">{{ props.feature.properties["type"] }}</n-tag>
+        <n-tag type="info">{{ props.feature.properties['type'] }}</n-tag>
       </n-form-item>
+      <NFormItem label="Feature Name">
+        <n-input
+          :value="formData.name ?? ''"
+          @update:value="
+            (v) => {
+              changeFeatureProps('name', v)
+            }
+          "
+        ></n-input>
+      </NFormItem>
       <n-form-item
         v-if="feature.properties.type === FeatureType.Block"
         label="Base Height (m)"
@@ -92,7 +134,7 @@ onMounted(() => {});
           :value="formData.base_height"
           @update:value="
             (v) => {
-              changeFeatureProps('base_height', v);
+              changeFeatureProps('base_height', v)
             }
           "
         ></n-input-number>
@@ -102,7 +144,7 @@ onMounted(() => {});
           :value="formData.height"
           @update:value="
             (v) => {
-              changeFeatureProps('height', v);
+              changeFeatureProps('height', v)
             }
           "
         ></n-input-number>
@@ -116,7 +158,7 @@ onMounted(() => {});
           :value="formData.width"
           @update:value="
             (v) => {
-              changeFeatureProps('width', v);
+              changeFeatureProps('width', v)
             }
           "
         ></n-input-number>
@@ -126,11 +168,21 @@ onMounted(() => {});
           :value="formData.color"
           @update:value="
             (v) => {
-              changeFeatureProps('color', v);
+              changeFeatureProps('color', v)
             }
           "
           :show-alpha="false"
         ></NColorPicker>
+      </n-form-item>
+      <n-form-item label="Enable Draw" label-placement="left">
+        <NSwitch
+          :value="enableEdit"
+          @update:value="
+            (v) => {
+              v ? enableDrawFeature() : disableDrawFeature()
+            }
+          "
+        ></NSwitch>
       </n-form-item>
       <template #action>
         <NButton type="error" @click="handleRemoveFeature">Remove</NButton>
