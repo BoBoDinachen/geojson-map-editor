@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 defineOptions({
-  name: "Footer",
-});
+  name: 'Footer',
+})
 </script>
 <template>
-  <div class="container">Created by BoBo. GeoJson Editor v1.1.0</div>
+  <div class="container">GeoJson Editor v1.2.0</div>
 </template>
 <style scoped>
 .container {

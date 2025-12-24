@@ -52,6 +52,10 @@ const handleRedo = () => {
   UndoRedoManager.redo();
 };
 
+function openSettingsModal(){
+  showSettingsModal.value = true
+}
+
 defineOptions({
   name: "Header",
 });
@@ -110,7 +114,7 @@ defineOptions({
         </NUpload>
         <NButton @click="showExportModal = true">Export</NButton>
         <ThemeSwitch></ThemeSwitch>
-        <NButton :render-icon="() => h(Settings)"></NButton>
+        <NButton :render-icon="() => h(Settings)" @click="openSettingsModal"></NButton>
       </div>
     </div>
     <SettingsModal v-model:show="showSettingsModal"></SettingsModal>
