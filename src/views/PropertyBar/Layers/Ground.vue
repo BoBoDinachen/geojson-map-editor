@@ -14,7 +14,7 @@ defineOptions({
 
 const DrawGroundHook = {
   state: reactive({
-    drawMode: DrawModeEnum.RECTANGLE_MODE,
+    drawMode: DrawModeEnum.POLYGON_MODE,
     drawing: false,
     properties:
       groundLayer.value?.getFeatureProperties() ??

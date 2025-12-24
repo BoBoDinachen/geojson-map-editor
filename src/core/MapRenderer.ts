@@ -112,6 +112,9 @@ export class MapRnderer {
       })
       this._addResizeListener(containerId)
       await this._map.once('load')
+
+      this._center = this._map.getCenter().toArray()
+      
       await this._initCustomLayers()
 
       DrawingManager.getInstance<DrawingManager>().init(this._map)
