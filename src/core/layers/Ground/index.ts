@@ -266,67 +266,67 @@ export class GroundLayer extends CustomLayer {
       this._map?.setFeatureState({ source: 'ground-source', id: featureId }, { hover: isHover })
     }
 
-    this._map?.on('click', [`ground-fill`], (e) => {
-      if (e.defaultPrevented) return
-      if (!this._selectEnabled) return
-      // 获取点击位置的特征信息
-      if (!e.features) return
-      const feature = e.features[0]
-      eventbus.emit(EventTypeEnum.ClearLayerSelectedState)
-      if (isGroundFeature(feature)) {
-        console.log('ground feature clicked', feature)
-        eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature })
-        this._selectedFeatureId = feature.id!
-        this._changeSelectedState(feature.id!, true)
-      } else {
-      }
-    })
-    this._map?.on('contextmenu', [`ground-fill`], (e) => {
-      if (e.defaultPrevented) return
-      if (!this._selectEnabled) return
-      if (this._selectedFeatureId && this._selectedFeatureId !== this._hoveredFeatureId) {
-        return
-      }
-      eventbus.emit(EventTypeEnum.OpenContextMenu, {
-        pos: e.point,
-        data: {
-          type: FeatureType.Ground,
-          feature: this.getFeatureById(this._hoveredFeatureId),
-          featureId: this._hoveredFeatureId,
-        },
-      })
-    })
-    this._map?.on('mousemove', [`ground-fill`], (e) => {
-      if (e.defaultPrevented) return
-      if (!this._selectEnabled) return
-      if (e.features!.length > 0) {
-        this._map!.getCanvas().style.cursor = 'pointer'
-        this._map?.dragRotate.disable()
-        const feature = e.features![0]
-        if (this._hoveredFeatureId !== null) {
-          if (isGroundFeature(feature)) {
-            changeHoverState(this._hoveredFeatureId, false)
-          }
-        }
-        this._hoveredFeatureId = feature.id!
-        if (isGroundFeature(feature)) {
-          changeHoverState(this._hoveredFeatureId, true)
-        }
-      }
-    })
-    this._map?.on('mouseenter', [`ground-fill`], (e) => {
-      if (e.defaultPrevented) return
-      if (!this._selectEnabled) return
-    })
-    this._map?.on('mouseleave', [`ground-fill`], (e) => {
-      if (e.defaultPrevented) return
-      if (!this._selectEnabled) return
-      if (this._hoveredFeatureId !== null) {
-        this._map!.getCanvas().style.cursor = ''
-        changeHoverState(this._hoveredFeatureId, false)
-      }
-      this._hoveredFeatureId = null
-      this._map?.dragRotate.enable()
-    })
+    // this._map?.on('click', [`ground-fill`], (e) => {
+    //   if (e.defaultPrevented) return
+    //   if (!this._selectEnabled) return
+    //   // 获取点击位置的特征信息
+    //   if (!e.features) return
+    //   const feature = e.features[0]
+    //   eventbus.emit(EventTypeEnum.ClearLayerSelectedState)
+    //   if (isGroundFeature(feature)) {
+    //     console.log('ground feature clicked', feature)
+    //     eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature })
+    //     this._selectedFeatureId = feature.id!
+    //     this._changeSelectedState(feature.id!, true)
+    //   } else {
+    //   }
+    // })
+    // this._map?.on('contextmenu', [`ground-fill`], (e) => {
+    //   if (e.defaultPrevented) return
+    //   if (!this._selectEnabled) return
+    //   if (this._selectedFeatureId && this._selectedFeatureId !== this._hoveredFeatureId) {
+    //     return
+    //   }
+    //   eventbus.emit(EventTypeEnum.OpenContextMenu, {
+    //     pos: e.point,
+    //     data: {
+    //       type: FeatureType.Ground,
+    //       feature: this.getFeatureById(this._hoveredFeatureId),
+    //       featureId: this._hoveredFeatureId,
+    //     },
+    //   })
+    // })
+    // this._map?.on('mousemove', [`ground-fill`], (e) => {
+    //   if (e.defaultPrevented) return
+    //   if (!this._selectEnabled) return
+    //   if (e.features!.length > 0) {
+    //     this._map!.getCanvas().style.cursor = 'pointer'
+    //     this._map?.dragRotate.disable()
+    //     const feature = e.features![0]
+    //     if (this._hoveredFeatureId !== null) {
+    //       if (isGroundFeature(feature)) {
+    //         changeHoverState(this._hoveredFeatureId, false)
+    //       }
+    //     }
+    //     this._hoveredFeatureId = feature.id!
+    //     if (isGroundFeature(feature)) {
+    //       changeHoverState(this._hoveredFeatureId, true)
+    //     }
+    //   }
+    // })
+    // this._map?.on('mouseenter', [`ground-fill`], (e) => {
+    //   if (e.defaultPrevented) return
+    //   if (!this._selectEnabled) return
+    // })
+    // this._map?.on('mouseleave', [`ground-fill`], (e) => {
+    //   if (e.defaultPrevented) return
+    //   if (!this._selectEnabled) return
+    //   if (this._hoveredFeatureId !== null) {
+    //     this._map!.getCanvas().style.cursor = ''
+    //     changeHoverState(this._hoveredFeatureId, false)
+    //   }
+    //   this._hoveredFeatureId = null
+    //   this._map?.dragRotate.enable()
+    // })
   }
 }

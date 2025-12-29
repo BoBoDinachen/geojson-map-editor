@@ -19,7 +19,7 @@ onMounted(async () => {
         <div class="logo-wrapper">
           <img src="/Logo.png" alt="" />
           <NSpace vertical>
-            <h1>{{ `GeoJsonEditor ${updateLog?.currentVersion}` }}</h1>
+            <h1>{{ `GeoJsonEditor V${updateLog?.currentVersion}` }}</h1>
             <NSpace align="center" :size="20">
               <NButton @click="showLog = true">View Log</NButton>
             </NSpace>

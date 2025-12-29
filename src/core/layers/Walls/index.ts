@@ -346,7 +346,6 @@ export class WallsLayer extends CustomLayer {
       const feature = e.features[0]
       eventbus.emit(EventTypeEnum.ClearLayerSelectedState)
       if (isBlockFeature(feature)) {
-        console.log('wall feature clicked', feature)
         eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature })
         this._selectedFeatureId = feature.id!
         this._changeSelectedState(feature.id!, true)

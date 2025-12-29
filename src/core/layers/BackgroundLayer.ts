@@ -13,6 +13,7 @@ export class BackgroundLayer extends CustomLayer {
   private _showGrid = useStorageRef(StorageKey.ShowGridBackground, true)
   private _showBaseMap = useStorageRef(StorageKey.ShowBaseMap, true)
   private _enableMoveMapImage = ref(false)
+  private _showMapImage = ref(true)
   public onAdd(map: mapbox.Map) {
     this._map = map
     const gridMesh = this._buildInfiniteGrid(undefined, undefined, 0x9e9e9e, 10000)
@@ -76,6 +77,11 @@ export class BackgroundLayer extends CustomLayer {
     }
   }
 
+  public changeShowMapImage(visible: boolean) {
+    this._showMapImage.value = visible
+    this._map.setLayoutProperty('map-image-layer', 'visibility', visible ? 'visible' : 'none')
+  }
+
   public enableMoveMapImage() {
     const imageSource = this.getMapImageSource()
     const coordinates = Array.from(imageSource?.coordinates ?? [])
@@ -111,10 +117,12 @@ export class BackgroundLayer extends CustomLayer {
   }
 
   public disableMoveMapImage() {
+    if (!this._enableMoveMapImage.value) return
     const drawInstance = editor.getDrawInstance()
     drawInstance?.deleteAll()
     drawInstance?.trash()
     this._enableMoveMapImage.value = false
+    this.removeMapEventListener('enableMoveMapImage')
   }
 
   public get showGrid() {
@@ -123,6 +131,10 @@ export class BackgroundLayer extends CustomLayer {
 
   public get isEnableMoveMapImage() {
     return this._enableMoveMapImage.value
+  }
+
+  public get showMapImage() {
+    return this._showMapImage.value
   }
 
   public changeShowGrid(value: boolean) {

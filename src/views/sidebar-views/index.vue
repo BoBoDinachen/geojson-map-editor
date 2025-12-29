@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import editor from "@/core/Editor";
-import { MenuKeyEnum, SideMenusStore } from "@/stores/SideMenusStore";
-import { onMounted, onUnmounted } from "vue";
+import editor from '@/core/Editor'
+import { SideMenusStore } from '@/stores/SideMenusStore'
+import { onMounted, onUnmounted } from 'vue'
 defineOptions({
-  name: "PropertyBar",
-});
+  name: 'SidebarViews',
+})
 onMounted(() => {
-  SideMenusStore.initListener();
-});
+  SideMenusStore.initListener()
+})
 onUnmounted(() => {
-  SideMenusStore.removeListener();
-});
+  SideMenusStore.removeListener()
+})
 </script>
 <template>
   <NCard
@@ -45,13 +45,10 @@ onUnmounted(() => {
       <div class="menus-wrapper">
         <div
           v-for="menuItem in SideMenusStore.menus"
-          :class="[
-            'menu-item',
-            SideMenusStore.activeMenuKey === menuItem.key ? 'active' : '',
-          ]"
+          :class="['menu-item', SideMenusStore.activeMenuKey === menuItem.key ? 'active' : '']"
           @click="
             () => {
-              SideMenusStore.toggleMenu(menuItem.key);
+              SideMenusStore.toggleMenu(menuItem.key)
             }
           "
           :key="menuItem.key"
@@ -60,11 +57,7 @@ onUnmounted(() => {
             class="menu-icon"
             text
             style="font-size: 24px"
-            :type="
-              SideMenusStore.activeMenuKey === menuItem.key
-                ? 'primary'
-                : undefined
-            "
+            :type="SideMenusStore.activeMenuKey === menuItem.key ? 'primary' : undefined"
           >
             <NIcon :component="menuItem.icon"></NIcon>
           </NButton>

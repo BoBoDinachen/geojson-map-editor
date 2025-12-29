@@ -70,6 +70,7 @@ onMounted(() => {
 })
 onUnmounted(() => {
   formData.files = []
+  backgroundLayer.value?.disableMoveMapImage()
 })
 </script>
 <template>
@@ -129,15 +130,26 @@ onUnmounted(() => {
           </n-upload>
           <NButton @click="removeImage">Remove Image</NButton>
         </NSpace>
-        <NCheckbox
-          :checked="backgroundLayer?.isEnableMoveMapImage"
-          @update:checked="
-            (v) => {
-              v ? backgroundLayer?.enableMoveMapImage() : backgroundLayer?.disableMoveMapImage()
-            }
-          "
-          >Move Image</NCheckbox
-        >
+        <NSpace>
+          <NCheckbox
+            :checked="backgroundLayer?.isEnableMoveMapImage"
+            @update:checked="
+              (v) => {
+                v ? backgroundLayer?.enableMoveMapImage() : backgroundLayer?.disableMoveMapImage()
+              }
+            "
+            >Move Image</NCheckbox
+          >
+          <NCheckbox
+            :checked="backgroundLayer?.showMapImage"
+            @update:checked="
+              (v) => {
+                backgroundLayer?.changeShowMapImage(v)
+              }
+            "
+            >Show Image</NCheckbox
+          >
+        </NSpace>
       </NSpace>
     </NCard>
   </div>

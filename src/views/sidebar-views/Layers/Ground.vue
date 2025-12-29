@@ -1,12 +1,14 @@
 <script setup lang="tsx">
 import { DrawModeEnum } from '@/core/draw_modes'
 import { groundLayer } from '@/stores/LayersStore'
-import { NButton, NColorPicker, NInputNumber, NSlider, NSpace } from 'naive-ui'
+import { NButton, NColorPicker, NSpace } from 'naive-ui'
 import { TableColumn } from 'naive-ui/es/data-table/src/interface'
-import { reactive, ref } from 'vue'
-import { Delete } from '@vicons/carbon'
+import { reactive } from 'vue'
+import { Delete, Settings } from '@vicons/carbon'
 import UndoRedoManager from '@/core/manager/UndoRedoManager'
 import { RemoveFeatureAction } from '@/core/actions/index'
+import { eventbus } from '@/utils/eventbus'
+import { EventTypeEnum } from '@/core/enum/Event'
 
 defineOptions({
   name: 'GroundLayer',
@@ -50,7 +52,7 @@ const GroundFeauresManager = {
       title: 'Label',
       key: 'properties.index',
       render(rowData: any, rowIndex) {
-        return `Ground-${rowData.properties.index}`
+        return rowData.properties.name
       },
     },
     {
@@ -90,27 +92,41 @@ const GroundFeauresManager = {
       title: 'Action',
       key: 'action',
       align: 'center',
+      width: 150,
       render(rowData: any, rowIndex) {
         return (
-          <n-button
-            text
-            style="font-size: 24px"
-            onClick={() => {
-              window.$dialog.warning({
-                title: 'Delete Wall',
-                content: 'Are you sure you want to delete this wall?',
-                positiveText: 'Yes',
-                negativeText: 'No',
-                onPositiveClick: () => {
-                  UndoRedoManager.execute(new RemoveFeatureAction(groundLayer.value!, rowData))
-                },
-              })
-            }}
-          >
-            <n-icon>
-              <Delete />
-            </n-icon>
-          </n-button>
+          <NSpace justify="center">
+            <NButton
+              text
+              style="font-size:24px"
+              onClick={() => {
+                eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: rowData })
+              }}
+            >
+              <n-icon>
+                <Settings />
+              </n-icon>
+            </NButton>
+            <n-button
+              text
+              style="font-size: 24px"
+              onClick={() => {
+                window.$dialog.warning({
+                  title: 'Delete ground',
+                  content: 'Are you sure you want to delete this ground?',
+                  positiveText: 'Yes',
+                  negativeText: 'No',
+                  onPositiveClick: () => {
+                    UndoRedoManager.execute(new RemoveFeatureAction(groundLayer.value!, rowData))
+                  },
+                })
+              }}
+            >
+              <n-icon>
+                <Delete />
+              </n-icon>
+            </n-button>
+          </NSpace>
         )
       },
     },
@@ -167,7 +183,9 @@ const GroundFeauresManager = {
     </NCard>
     <NCard title="Features" size="small">
       <template #header-extra>
-        <NButton size="small" @click="GroundFeauresManager.removeAllGround">Delete All</NButton>
+        <NButton size="small" type="error" @click="GroundFeauresManager.removeAllGround"
+          >Delete All</NButton
+        >
       </template>
       <NDataTable
         size="small"

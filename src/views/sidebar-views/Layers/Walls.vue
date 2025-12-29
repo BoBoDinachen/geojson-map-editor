@@ -1,15 +1,17 @@
 <script setup lang="tsx">
-import { reactive, ref } from "vue";
-import { groundLayer, wallsLayer } from "@/stores/LayersStore";
-import { NInputNumber, NColorPicker, NSpace, NButton } from "naive-ui";
-import { TableColumn } from "naive-ui/es/data-table/src/interface";
-import { Delete } from "@vicons/carbon";
-import { RemoveFeatureAction } from "@/core/actions";
-import UndoRedoManager from "@/core/manager/UndoRedoManager";
+import { reactive } from 'vue'
+import { wallsLayer } from '@/stores/LayersStore'
+import { NInputNumber, NColorPicker, NSpace, NButton } from 'naive-ui'
+import { TableColumn } from 'naive-ui/es/data-table/src/interface'
+import { Delete, Settings } from '@vicons/carbon'
+import { RemoveFeatureAction } from '@/core/actions'
+import UndoRedoManager from '@/core/manager/UndoRedoManager'
+import { eventbus } from '@/utils/eventbus'
+import { EventTypeEnum } from '@/core/enum/Event'
 
 defineOptions({
-  name: "WallsLayer",
-});
+  name: 'WallsLayer',
+})
 const DrawWallsManager = {
   state: reactive({
     drawing: false,
@@ -21,12 +23,12 @@ const DrawWallsManager = {
     wallsLayer.value?.getFeatureProperties() ??
     ({
       height: 0.1,
-      color: "#64e2b7",
+      color: '#64e2b7',
     } as FeatureProperties),
   stopDraw: null as any,
   startDraw() {
-    const self = DrawWallsManager;
-    self.state.drawing = true;
+    const self = DrawWallsManager
+    self.state.drawing = true
     self.stopDraw = wallsLayer.value?.drawWall(
       {
         enableSnap: self.state.enableSnap,
@@ -34,28 +36,28 @@ const DrawWallsManager = {
         width: self.state.width,
       },
       () => {
-        self.state.drawing = false;
+        self.state.drawing = false
       }
-    );
+    )
   },
   cancelDraw() {
-    const self = DrawWallsManager;
-    self.stopDraw();
-    self.state.drawing = false;
+    const self = DrawWallsManager
+    self.stopDraw()
+    self.state.drawing = false
   },
-};
+}
 const WallFeauresManager = {
   columns: [
     {
-      title: "Label",
-      key: "properties.index",
+      title: 'Label',
+      key: 'properties.index',
       render(rowData: any, rowIndex) {
-        return `Wall-${rowData.properties.index}`;
+        return rowData.properties.name
       },
     },
     {
-      title: "Height (m)",
-      key: "properties.height",
+      title: 'Height (m)',
+      key: 'properties.height',
       render(rowData: any, rowIndex) {
         return (
           <NInputNumber
@@ -64,19 +66,16 @@ const WallFeauresManager = {
             value={rowData.properties.height}
             updateValueOnInput={false}
             onUpdateValue={(value: number) => {
-              WallFeauresManager.onChangeFillHeight(
-                rowData.properties.index,
-                value
-              );
+              WallFeauresManager.onChangeFillHeight(rowData.properties.index, value)
             }}
             size="small"
           />
-        );
+        )
       },
     },
     {
-      title: "Width (m)",
-      key: "properties.width",
+      title: 'Width (m)',
+      key: 'properties.width',
       render(rowData: any, rowIndex) {
         return (
           <NInputNumber
@@ -85,94 +84,100 @@ const WallFeauresManager = {
             value={rowData.properties.width}
             updateValueOnInput={false}
             onUpdateValue={(value: number) => {
-              WallFeauresManager.onChangeWidth(rowData.properties.index, value);
+              WallFeauresManager.onChangeWidth(rowData.properties.index, value)
             }}
             size="small"
           />
-        );
+        )
       },
     },
     {
-      title: "Color",
-      key: "properties.color",
+      title: 'Color',
+      key: 'properties.color',
       render(rowData: any, rowIndex) {
         return (
           <NColorPicker
             show-alpha={false}
             value={rowData.properties.color}
             onUpdateValue={(value: string) => {
-              WallFeauresManager.onChangeColor(rowData.properties.index, value);
+              WallFeauresManager.onChangeColor(rowData.properties.index, value)
             }}
           />
-        );
+        )
       },
     },
     {
-      title: "Action",
-      key: "action",
-      align: "center",
+      title: 'Action',
+      key: 'action',
+      align: 'center',
       render(rowData: any, rowIndex) {
         return (
-          <n-button
-            text
-            style="font-size: 24px"
-            onClick={() => {
-              window.$dialog.warning({
-                title: "Delete Wall",
-                content: "Are you sure you want to delete this wall?",
-                positiveText: "Yes",
-                negativeText: "No",
-                onPositiveClick: () => {
-                  UndoRedoManager.execute(
-                    new RemoveFeatureAction(wallsLayer.value!, rowData)
-                  );
-                },
-              });
-            }}
-          >
-            <n-icon>
-              <Delete />
-            </n-icon>
-          </n-button>
-        );
+          <NSpace>
+            <NButton
+              text
+              style="font-size:24px"
+              onClick={() => {
+                eventbus.emit(EventTypeEnum.SELECT_FEATURE, { feature: rowData })
+              }}
+            >
+              <n-icon>
+                <Settings />
+              </n-icon>
+            </NButton>
+            <n-button
+              text
+              style="font-size: 24px"
+              onClick={() => {
+                window.$dialog.warning({
+                  title: 'Delete Wall',
+                  content: 'Are you sure you want to delete this wall?',
+                  positiveText: 'Yes',
+                  negativeText: 'No',
+                  onPositiveClick: () => {
+                    UndoRedoManager.execute(new RemoveFeatureAction(wallsLayer.value!, rowData))
+                  },
+                })
+              }}
+            >
+              <n-icon>
+                <Delete />
+              </n-icon>
+            </n-button>
+          </NSpace>
+        )
       },
     },
   ] as TableColumn[],
 
   onChangeColor(index: number, color: string) {
-    wallsLayer.value?.updateFeature(index, { color });
+    wallsLayer.value?.updateFeature(index, { color })
   },
 
   onChangeWidth(index: number, width: number) {
-    wallsLayer.value?.updateWallWidth(index, width);
+    wallsLayer.value?.updateWallWidth(index, width)
   },
 
   onChangeFillHeight(index: number, height: number) {
-    wallsLayer.value?.updateFeature(index, { height });
+    wallsLayer.value?.updateFeature(index, { height })
   },
 
   removeAllWall() {
     window.$dialog.warning({
-      title: "Delete All Walls",
-      content: "Are you sure you want to delete all walls?",
-      positiveText: "Yes",
-      negativeText: "No",
+      title: 'Delete All Walls',
+      content: 'Are you sure you want to delete all walls?',
+      positiveText: 'Yes',
+      negativeText: 'No',
       onPositiveClick: () => {
-        wallsLayer.value?.removeAllFeatures();
+        wallsLayer.value?.removeAllFeatures()
       },
-    });
+    })
   },
-};
+}
 </script>
 <template>
   <div class="walls-layer-container">
     <NCard title="Layer Style" size="small">
-      <NFormItem
-        label="Wall Opacity:"
-        label-placement="left"
-        :label-width="100"
-        label-align="left"
-      >
+      <NFormItem label="Wall Opacity:" label-placement="left" :label-width="100" label-align="left">
         <NSlider
           :min="0"
           :max="1"
@@ -180,7 +185,7 @@ const WallFeauresManager = {
           :value="wallsLayer?.getOpacity()"
           @update:value="
             (v) => {
-              wallsLayer?.changeWallsOpacity(v);
+              wallsLayer?.changeWallsOpacity(v)
             }
           "
         ></NSlider>
@@ -215,23 +220,13 @@ const WallFeauresManager = {
           size="small"
         ></NInputNumber>
       </NFormItem>
-      <NFormItem
-        label="Color:"
-        label-placement="left"
-        :label-width="100"
-        label-align="left"
-      >
+      <NFormItem label="Color:" label-placement="left" :label-width="100" label-align="left">
         <NColorPicker
           v-model:value="DrawWallsManager.properties.color"
           :show-alpha="false"
         ></NColorPicker>
       </NFormItem>
-      <NFormItem
-        label="Enable Snap:"
-        label-placement="left"
-        :label-width="100"
-        label-align="left"
-      >
+      <NFormItem label="Enable Snap:" label-placement="left" :label-width="100" label-align="left">
         <NSwitch v-model:value="DrawWallsManager.state.enableSnap"></NSwitch>
       </NFormItem>
       <NFormItem
@@ -249,16 +244,14 @@ const WallFeauresManager = {
           type="primary"
           >Start Draw</NButton
         >
-        <NButton
-          @click="DrawWallsManager.cancelDraw"
-          v-if="DrawWallsManager.state.drawing"
+        <NButton @click="DrawWallsManager.cancelDraw" v-if="DrawWallsManager.state.drawing"
           >Cancel</NButton
         >
       </NSpace>
     </NCard>
     <NCard title="Wall Features" size="small">
       <template #header-extra>
-        <NButton size="small" @click="WallFeauresManager.removeAllWall"
+        <NButton size="small" type="error" @click="WallFeauresManager.removeAllWall"
           >Delete All</NButton
         >
       </template>

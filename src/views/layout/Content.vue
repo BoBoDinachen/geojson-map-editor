@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import SideBar from "@/views/sidebar/index.vue";
-import Editor from "@/views/Editor/index.vue";
-import PropertyBar from "@/views/PropertyBar/index.vue";
+import SideBar from '@/views/sidebar/index.vue'
+import Editor from '@/views/Editor/index.vue'
+import SidebarViews from '@/views/sidebar-views/index.vue'
 defineOptions({
-  name: "Content",
-});
+  name: 'Content',
+})
 </script>
 <template>
   <div :class="styles.container" id="main-container">
@@ -17,7 +17,7 @@ defineOptions({
       :min="0.25"
     >
       <template #1> <Editor></Editor> </template>
-      <template #2> <PropertyBar></PropertyBar> </template>
+      <template #2> <SidebarViews></SidebarViews> </template>
     </n-split>
   </div>
 </template>

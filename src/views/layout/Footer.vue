@@ -1,10 +1,18 @@
 <script lang="ts" setup>
+import { onMounted, ref } from 'vue'
+
 defineOptions({
   name: 'Footer',
 })
+const updateLog = ref<any>(null)
+
+onMounted(async () => {
+  const res = await fetch('/version_log.json')
+  updateLog.value = await res.json()
+})
 </script>
 <template>
-  <div class="container">GeoJson Editor v1.2.0</div>
+  <div class="container">{{ `GeoJson Editor v${updateLog?.currentVersion}` }}</div>
 </template>
 <style scoped>
 .container {
